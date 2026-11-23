@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>وظيفتي - منصة التوظيف الذكية في عُمان</title>
+<meta name="description" content="وظيفتي: منصة توظيف ذكية في سلطنة عُمان، وظائف موثّقة ومساعد ذكاء اصطناعي وقوالب سيرة ذاتية حصرية.">
+<meta name="theme-color" content="#1B1035">
+<meta property="og:title" content="وظيفتي - منصة التوظيف الذكية في عُمان">
+<meta property="og:description" content="وظائف موثّقة، مساعد ذكاء اصطناعي، وسيرة ذاتية احترافية.">
+<meta property="og:image" content="assets/og-image.png">
+<link rel="icon" type="image/png" href="assets/icons/favicon.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="demo">النسخة 1.0 التجريبية · الشركات والوظائف والأسماء أمثلة للتجربة</div>
+<div class="top"><div class="in">
+  <button class="logo" data-a="home" aria-label="الرئيسية"><img src="assets/brand/mark.svg" alt=""><span>وظيفتي<small>WAZIFATI</small></span></button>
+  <div class="roles" id="roles"></div>
+  <button class="bell" data-a="bell" aria-label="الإشعارات">🔔<span id="bellN"></span></button>
+</div></div>
+<nav class="nav"><div class="in" id="nav"></div></nav>
+<main id="app"></main>
+<footer style="text-align:center;padding:10px 16px 120px;color:var(--mut);font-size:13px">
+  <img src="assets/brand/logo-horizontal.svg" alt="وظيفتي" style="height:38px;opacity:.85"><br>
+  <a href="#" data-a="view" data-v="brand">الهوية البصرية</a> · <a href="#" data-a="reset">إعادة البيانات التجريبية</a> · v1.0
+</footer>
+<nav class="bnav" id="bnav"></nav>
+<button class="fab" data-a="togglechat"><span class="spark">✦</span><span class="t">مساعد وظيفتي</span></button>
+<div id="chat"></div>
+<div id="layer"></div>
+<div id="printArea"></div>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/cv-templates.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
