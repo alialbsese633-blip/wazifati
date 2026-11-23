@@ -43,6 +43,13 @@ docs/ROADMAP.md            خطة الإطلاق والمراحل
 - **محلياً:** افتح المجلد وشغّل `python3 -m http.server` ثم افتح `http://localhost:8000`.
 - **على الإنترنت:** كل دفع إلى فرع `main` يُنشر تلقائياً على GitHub Pages (من الإعدادات: Settings ← Pages ← Source: GitHub Actions).
 
+## تطبيق أندرويد (APK)
+مع كل تحديث على `main` يُبنى ملف APK تلقائياً عبر Capacitor، ويُنشر في صفحة **Releases** باسم «وظيفتي - تطبيق أندرويد (أحدث نسخة)».
+
+رابط التحميل المباشر: `https://github.com/alialbsese633-blip/wazifati/releases/download/apk-latest/wazifati-v1.0.0.apk`
+
+بناء محلي: `npm install && npm run android:prepare && cd android && ./gradlew assembleDebug`
+
 ## تفعيل الذكاء الاصطناعي الحقيقي
 ```bash
 supabase functions deploy ai-assistant

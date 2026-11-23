@@ -1,0 +1,58 @@
+name: Build Android APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install
+        run: npm ci
+
+      - name: Prepare Android project (web files, icons, splash)
+        run: npm run android:prepare
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          cp android/app/build/outputs/apk/debug/app-debug.apk "wazifati-v${VERSION}.apk"
+          echo "APK=wazifati-v${VERSION}.apk" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wazifati-apk
+          path: ${{ env.APK }}
+
+      - name: Publish to Releases (direct download link)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete apk-latest --yes --cleanup-tag || true
+          gh release create apk-latest "$APK" \
+            --title "وظيفتي - تطبيق أندرويد (أحدث نسخة)" \
+            --notes "ملف APK لتجربة تطبيق وظيفتي على أجهزة أندرويد. يُحدَّث تلقائياً مع كل تعديل على المشروع." \
+            --latest

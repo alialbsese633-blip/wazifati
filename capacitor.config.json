@@ -1,0 +1,8 @@
+{
+  "appId": "om.wazifati.app",
+  "appName": "وظيفتي",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#1B1035"
+  }
+}
