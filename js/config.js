@@ -9,7 +9,7 @@ window.WAZIFATI_CONFIG = {
   supabaseAnonKey:'sb_publishable_UMz1QuJaIQU2ZdTSXbczVQ_GFyTZ-1v',        // Project Settings ← API ← anon public
   googleLogin: true,          // الدخول بحساب Google
   phoneLogin: false,          // الدخول برقم الجوال (يحتاج مزوّد رسائل SMS في Supabase)
-  pushEnabled: false,         // إشعارات الجوال (بعد إضافة Firebase)
+  pushEnabled: true ,         // إشعارات الجوال (بعد إضافة Firebase)
   nativeScheme: 'com.wazifati.app',
   webUrl: 'https://alialbsese633-blip.github.io/wazifati/',
   supportEmail: ''            // بريد الدعم الذي يظهر في سياسة الخصوصية
