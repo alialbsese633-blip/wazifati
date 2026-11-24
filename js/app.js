@@ -408,7 +408,7 @@ async function openNotif(n) {
   if (n.app && D.apps.some(a => a.id === n.app)) { openThread(n.app); return; }
   render();
 }
-function openJob(id) { const j = job(id); if (!j) { toast(L('الوظيفة غير متاحة', 'Job not available')); return; } go('job', { jobId: id }); Store.viewJob(id); }
+async function openJob(id) { let j = job(id); if (!j && REAL) { try { await Store.load(); } catch (e) {} j = job(id); } if (!j) { toast(L('الوظيفة غير متاحة', 'Job not available')); return; } go('job', { jobId: id }); Store.viewJob(id); }
 async function openThread(id) { go('thread', { appId: id }); try { await Store.loadThread(id); if (S.view === 'thread' && S.appId === id) render(); } catch (e) {} }
 function ivModal(appId) {
   const a = D.apps.find(x => x.id === appId), base = new Date(Date.now() + 2 * 864e5); base.setHours(10, 0, 0, 0);
