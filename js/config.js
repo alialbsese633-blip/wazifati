@@ -5,8 +5,8 @@
    مفتاح anon عام بطبيعته وآمن في الواجهة؛ لا تضع هنا أي مفتاح سري.
    ===================================================== */
 window.WAZIFATI_CONFIG = {
-  supabaseUrl: '',            // مثال: https://abcd1234.supabase.co
-  supabaseAnonKey: '',        // Project Settings ← API ← anon public
+  supabaseUrl:'https://smjqwojvzdayhxmcigay.supabase.co',            // مثال: https://abcd1234.supabase.co
+  supabaseAnonKey:'sb_publishable_UMz1QuJaIQU2ZdTSXbczVQ_GFyTZ-1v',        // Project Settings ← API ← anon public
   googleLogin: true,          // الدخول بحساب Google
   phoneLogin: false,          // الدخول برقم الجوال (يحتاج مزوّد رسائل SMS في Supabase)
   pushEnabled: false,         // إشعارات الجوال (بعد إضافة Firebase)
