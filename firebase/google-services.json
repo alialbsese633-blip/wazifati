@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "621752018742",
+    "project_id": "wazifati-86d7e",
+    "storage_bucket": "wazifati-86d7e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:621752018742:android:cf9871f7330477cf31f597",
+        "android_client_info": {
+          "package_name": "com.wazifati.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQaZtOCqcvGIzjGsPQfAXUY829Swuiz1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

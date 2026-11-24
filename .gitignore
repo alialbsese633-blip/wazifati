@@ -4,4 +4,5 @@ node_modules/
 supabase/.temp/
 www/
 android/
-google-services.json
+/google-services.json
+!firebase/google-services.json
