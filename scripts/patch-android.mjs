@@ -14,5 +14,7 @@ if (!x.includes('android:scheme="com.wazifati.app"')) {
 }
 if (!x.includes('POST_NOTIFICATIONS')) x = x.replace('<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />');
 fs.writeFileSync(mf, x);
-if (fs.existsSync('google-services.json')) { fs.copyFileSync('google-services.json', 'android/app/google-services.json'); console.log('google-services.json added'); }
+const gs = ['google-services.json', 'firebase/google-services.json'].find(f => fs.existsSync(f));
+if (gs) { fs.copyFileSync(gs, 'android/app/google-services.json'); console.log('google-services.json added from ' + gs); }
+else if (process.env.REQUIRE_FIREBASE) { console.error('google-services.json missing'); process.exit(1); }
 console.log('android patched');

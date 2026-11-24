@@ -35,6 +35,8 @@ jobs:
 
       - name: Prepare Android project (web files, icons, splash, deep links)
         run: npm run android:prepare
+        env:
+          REQUIRE_FIREBASE: "1"
 
       - name: Build APK
         working-directory: android
