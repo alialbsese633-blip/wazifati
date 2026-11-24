@@ -1,409 +1,678 @@
 -- =====================================================
--- وظيفتي (Wazifati) - Database schema
--- PostgreSQL (Supabase). Run in the SQL editor.
--- Salary in OMR (3 decimals)
+-- وظيفتي v2 - قاعدة البيانات الكاملة (Supabase / PostgreSQL 15+)
+-- شغّل الملف كاملاً مرة واحدة من: SQL Editor ← New query ← Run
 -- =====================================================
 
-create extension if not exists pgcrypto;
-create extension if not exists pg_trgm;   -- fast text search
+-- gen_random_uuid() مدمجة في PostgreSQL 13+
 
--- ---------- Enums ----------
-create type user_role     as enum ('seeker','employer','admin');
-create type job_status    as enum ('draft','pending','active','paused','closed','rejected','expired');
-create type job_type      as enum ('full_time','part_time','contract','internship','gig');
-create type nat_req       as enum ('any','omani_only');
-create type app_status    as enum ('new','reviewed','interview','accepted','rejected','withdrawn');
-create type report_status as enum ('open','resolved','dismissed');
-create type notif_channel as enum ('push','whatsapp','email');
-
--- ---------- Lookups ----------
-create table wilayat (
-  id      serial primary key,
-  name_ar text not null,
-  name_en text not null,
-  governorate_ar text
+-- ---------- الملفات الشخصية (لكل مستخدم) ----------
+create table if not exists public.profiles (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  role          text check (role in ('seeker','employer','admin')),   -- يُختار عند أول دخول
+  full_name     text,
+  email         text,
+  phone         text,
+  lang          text not null default 'ar' check (lang in ('ar','en')),
+  location      text,
+  headline      text,
+  about         text,
+  exp_years     int  not null default 0 check (exp_years between 0 and 60),
+  education     text,
+  skills        text[] not null default '{}',
+  languages     text[] not null default '{}',
+  experiences   jsonb  not null default '[]',
+  pref_category text,
+  cv_template   text not null default 'khanjar',
+  cv_path       text,
+  open_to_work  boolean not null default true,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
-create table categories (
-  id      serial primary key,
-  name_ar text not null,
-  name_en text not null,
-  is_active boolean not null default true
-);
-
-create table skills (
-  id      serial primary key,
-  name_ar text not null,
-  name_en text,
-  unique (name_ar)
-);
-
--- ---------- Users ----------
-create table profiles (
-  id         uuid primary key references auth.users(id) on delete cascade,
-  role       user_role not null default 'seeker',
-  full_name  text not null,
-  phone      text unique not null,
-  is_omani   boolean not null default true,
-  wilayat_id int references wilayat(id),
-  lang       text not null default 'ar' check (lang in ('ar','en')),
-  is_blocked boolean not null default false,
-  created_at timestamptz not null default now()
-);
-
--- ---------- Seeker CV ----------
-create table seeker_profiles (
-  user_id      uuid primary key references profiles(id) on delete cascade,
-  headline     text,                    -- المسمى الوظيفي
-  about        text,
-  exp_years    int not null default 0 check (exp_years >= 0),
-  education    text,
-  cv_url       text,
-  open_to_work boolean not null default true,
-  completeness int not null default 0 check (completeness between 0 and 100),
-  updated_at   timestamptz not null default now()
-);
-
-create table seeker_skills (
-  user_id  uuid references seeker_profiles(user_id) on delete cascade,
-  skill_id int  references skills(id),
-  primary key (user_id, skill_id)
-);
-
-create table seeker_experiences (
-  id         uuid primary key default gen_random_uuid(),
-  user_id    uuid not null references seeker_profiles(user_id) on delete cascade,
-  title      text not null,
-  company    text not null,
-  start_date date,
-  end_date   date,
-  details    text
-);
-
--- ---------- Employers ----------
-create table employers (
-  id          uuid primary key default gen_random_uuid(),
-  owner_id    uuid not null references profiles(id),
-  name        text not null,
-  cr_number   text unique,              -- السجل التجاري
-  about       text,
-  logo_url    text,
-  wilayat_id  int references wilayat(id),
-  is_verified boolean not null default false,
-  verified_at timestamptz,
-  verified_by uuid references profiles(id),
-  created_at  timestamptz not null default now()
-);
-
-create table employer_members (       -- team members who can manage jobs
-  employer_id uuid references employers(id) on delete cascade,
-  user_id     uuid references profiles(id) on delete cascade,
-  primary key (employer_id, user_id)
-);
-
--- ---------- Jobs ----------
-create table jobs (
-  id          uuid primary key default gen_random_uuid(),
-  employer_id uuid not null references employers(id),
-  title       text not null,
-  category_id int  not null references categories(id),
-  wilayat_id  int  references wilayat(id),
-  is_remote   boolean not null default false,
-  type        job_type not null default 'full_time',
-  salary_min  numeric(8,3) check (salary_min >= 0),
-  salary_max  numeric(8,3) check (salary_max >= salary_min),
-  exp_years   int not null default 0,
-  nationality nat_req not null default 'any',
-  description text not null,
-  requirements text[] not null default '{}',
-  status      job_status not null default 'pending',
-  reject_reason text,
-  views       int not null default 0,
-  created_at  timestamptz not null default now(),
-  published_at timestamptz,
-  expires_at  timestamptz
-);
-create index jobs_status_idx   on jobs(status, published_at desc);
-create index jobs_filter_idx   on jobs(category_id, wilayat_id, type) where status = 'active';
-create index jobs_title_trgm   on jobs using gin (title gin_trgm_ops);
-
-create table job_skills (
-  job_id   uuid references jobs(id) on delete cascade,
-  skill_id int  references skills(id),
-  primary key (job_id, skill_id)
-);
-
--- ---------- Applications ----------
-create table applications (
-  id         uuid primary key default gen_random_uuid(),
-  job_id     uuid not null references jobs(id) on delete cascade,
-  seeker_id  uuid not null references profiles(id),
-  note       text,
-  match_pct  int,
-  status     app_status not null default 'new',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (job_id, seeker_id)
-);
-create index applications_job_idx    on applications(job_id, status);
-create index applications_seeker_idx on applications(seeker_id, created_at desc);
-
-create table application_events (     -- who changed the status and when
-  id             bigserial primary key,
-  application_id uuid not null references applications(id) on delete cascade,
-  actor_id       uuid references profiles(id),
-  from_status    app_status,
-  to_status      app_status not null,
-  note           text,
+-- ---------- الشركات ----------
+create table if not exists public.companies (
+  id             uuid primary key default gen_random_uuid(),
+  owner_id       uuid not null unique references public.profiles(id) on delete cascade,
+  name           text not null,
+  cr_number      text not null,
+  cr_doc_path    text,
+  location       text,
+  about          text,
+  phone          text,
+  status         text not null default 'pending' check (status in ('pending','verified','rejected')),
+  reject_reason  text,
+  verified_at    timestamptz,
+  rating_avg     numeric(3,2) not null default 0,
+  rating_count   int not null default 0,
+  apps_total     int not null default 0,
+  apps_responded int not null default 0,
   created_at     timestamptz not null default now()
 );
 
-create table interviews (
+-- ---------- الوظائف ----------
+create table if not exists public.jobs (
+  id           uuid primary key default gen_random_uuid(),
+  company_id   uuid not null references public.companies(id) on delete cascade,
+  title        text not null check (length(title) between 2 and 120),
+  category     text not null,
+  location     text not null,
+  job_type     text not null default 'full_time' check (job_type in ('full_time','part_time','contract','internship')),
+  salary_min   numeric(12,2) check (salary_min >= 0),
+  salary_max   numeric(12,2) check (salary_max >= 0),
+  currency     text not null default 'YER' check (currency in ('YER','USD','SAR')),
+  exp_years    int not null default 0,
+  skills       text[] not null default '{}',
+  description  text not null,
+  requirements text[] not null default '{}',
+  is_gig       boolean not null default false,
+  featured     boolean not null default false,
+  status       text not null default 'pending' check (status in ('pending','active','paused','closed','rejected','expired')),
+  views        int not null default 0,
+  created_at   timestamptz not null default now(),
+  published_at timestamptz,
+  expires_at   timestamptz,
+  constraint salary_range check (salary_max is null or salary_min is null or salary_max >= salary_min)
+);
+create index if not exists jobs_status_idx on public.jobs(status, published_at desc);
+create index if not exists jobs_company_idx on public.jobs(company_id);
+
+-- ---------- طلبات التوظيف ----------
+create table if not exists public.applications (
+  id                uuid primary key default gen_random_uuid(),
+  job_id            uuid not null references public.jobs(id) on delete cascade,
+  seeker_id         uuid not null references public.profiles(id) on delete cascade,
+  note              text,
+  match             int,
+  status            text not null default 'new' check (status in ('new','reviewed','interview','accepted','rejected','withdrawn')),
+  snapshot          jsonb not null default '{}',     -- نسخة من ملف الباحث وقت التقديم
+  first_response_at timestamptz,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now(),
+  unique (job_id, seeker_id)
+);
+create index if not exists applications_seeker_idx on public.applications(seeker_id);
+create index if not exists applications_job_idx on public.applications(job_id);
+
+-- ---------- المحادثة ----------
+create table if not exists public.messages (
   id             uuid primary key default gen_random_uuid(),
-  application_id uuid not null references applications(id) on delete cascade,
-  scheduled_at   timestamptz not null,
-  location       text,
-  notes          text
+  application_id uuid not null references public.applications(id) on delete cascade,
+  sender_id      uuid not null references public.profiles(id) on delete cascade,
+  body           text not null check (length(body) between 1 and 4000),
+  read_at        timestamptz,
+  created_at     timestamptz not null default now()
+);
+create index if not exists messages_app_idx on public.messages(application_id, created_at);
+
+-- ---------- المقابلات ----------
+create table if not exists public.interviews (
+  id             uuid primary key default gen_random_uuid(),
+  application_id uuid not null references public.applications(id) on delete cascade,
+  proposed_by    uuid references public.profiles(id) on delete set null,
+  slots          timestamptz[] not null check (cardinality(slots) between 1 and 3),
+  chosen_slot    timestamptz,
+  mode           text not null default 'onsite' check (mode in ('onsite','phone','video')),
+  place          text,
+  note           text,
+  status         text not null default 'proposed' check (status in ('proposed','confirmed','reschedule','cancelled')),
+  created_at     timestamptz not null default now()
+);
+create index if not exists interviews_app_idx on public.interviews(application_id);
+
+-- ---------- التقييمات ----------
+create table if not exists public.reviews (
+  id            uuid primary key default gen_random_uuid(),
+  company_id    uuid not null references public.companies(id) on delete cascade,
+  seeker_id     uuid not null references public.profiles(id) on delete cascade,
+  reviewer_name text,
+  rating        int not null check (rating between 1 and 5),
+  comment       text check (length(comment) <= 1000),
+  created_at    timestamptz not null default now(),
+  unique (company_id, seeker_id)
 );
 
--- ---------- Engagement ----------
-create table saved_jobs (
-  user_id    uuid references profiles(id) on delete cascade,
-  job_id     uuid references jobs(id) on delete cascade,
+-- ---------- المحفوظات والتنبيهات والإشعارات والبلاغات ----------
+create table if not exists public.saved_jobs (
+  user_id uuid references public.profiles(id) on delete cascade,
+  job_id  uuid references public.jobs(id) on delete cascade,
   created_at timestamptz not null default now(),
   primary key (user_id, job_id)
 );
-
-create table job_alerts (
-  id          uuid primary key default gen_random_uuid(),
-  user_id     uuid not null references profiles(id) on delete cascade,
-  category_id int references categories(id),
-  wilayat_id  int references wilayat(id),
-  channel     notif_channel not null default 'push',
-  is_active   boolean not null default true
-);
-
-create table notifications (
-  id         bigserial primary key,
-  user_id    uuid not null references profiles(id) on delete cascade,
-  title      text not null,
-  body       text,
-  data       jsonb not null default '{}',
-  read_at    timestamptz,
+create table if not exists public.job_alerts (
+  id       uuid primary key default gen_random_uuid(),
+  user_id  uuid not null references public.profiles(id) on delete cascade,
+  category text,
+  location text,
   created_at timestamptz not null default now()
 );
-create index notifications_user_idx on notifications(user_id, created_at desc);
-
--- ---------- Trust & safety ----------
-create table reports (
+create table if not exists public.notifications (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid not null references public.profiles(id) on delete cascade,
+  type           text not null,
+  title          text not null,
+  body           text,
+  job_id         uuid references public.jobs(id) on delete cascade,
+  application_id uuid references public.applications(id) on delete cascade,
+  read_at        timestamptz,
+  created_at     timestamptz not null default now()
+);
+create index if not exists notifications_user_idx on public.notifications(user_id, created_at desc);
+create table if not exists public.push_tokens (
+  token      text primary key,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  platform   text,
+  created_at timestamptz not null default now()
+);
+create table if not exists public.reports (
   id          uuid primary key default gen_random_uuid(),
-  job_id      uuid references jobs(id) on delete set null,
-  reporter_id uuid not null references profiles(id),
+  job_id      uuid references public.jobs(id) on delete cascade,
+  reporter_id uuid references public.profiles(id) on delete set null,
   reason      text not null,
-  status      report_status not null default 'open',
-  handled_by  uuid references profiles(id),
+  status      text not null default 'open' check (status in ('open','resolved','dismissed')),
   created_at  timestamptz not null default now()
 );
-
-create table audit_log (
-  id         bigserial primary key,
-  actor_id   uuid references profiles(id),
-  action     text not null,
-  entity     text not null,
-  entity_id  text,
-  meta       jsonb not null default '{}',
-  created_at timestamptz not null default now()
-);
-
--- ---------- Monetization (phase 2) ----------
-create table plans (
-  id        serial primary key,
-  code      text unique not null,       -- free / starter / pro
-  name_ar   text not null,
-  price_omr numeric(8,3) not null default 0,
-  job_slots int not null,
-  featured_slots int not null default 0
-);
-
-create table subscriptions (
-  id          uuid primary key default gen_random_uuid(),
-  employer_id uuid not null references employers(id),
-  plan_id     int  not null references plans(id),
-  starts_at   timestamptz not null default now(),
-  ends_at     timestamptz not null
+create table if not exists public.ai_usage (
+  user_id uuid references public.profiles(id) on delete cascade,
+  day     date not null default current_date,
+  count   int not null default 0,
+  primary key (user_id, day)
 );
 
 -- =====================================================
--- Functions & triggers
+-- دوال مساعدة
 -- =====================================================
-
--- Match % between a seeker and a job (70% skills, 15% place, 15% experience)
-create or replace function match_pct(p_user uuid, p_job uuid) returns int
-language plpgsql stable as $$
-declare
-  j jobs; sp seeker_profiles; pr profiles;
-  js int; hit int; sk numeric := 0; pl int := 0; ex int := 0;
-begin
-  select * into j  from jobs where id = p_job;
-  select * into sp from seeker_profiles where user_id = p_user;
-  select * into pr from profiles where id = p_user;
-  select count(*) into js from job_skills where job_id = p_job;
-  select count(*) into hit from job_skills jk
-   join seeker_skills s on s.skill_id = jk.skill_id and s.user_id = p_user
-   where jk.job_id = p_job;
-  if js > 0 then sk := hit::numeric / js * 70; end if;
-  if j.is_remote or pr.wilayat_id = j.wilayat_id then pl := 15; end if;
-  if sp.exp_years >= j.exp_years then ex := 15;
-  else ex := round(15.0 * sp.exp_years / greatest(j.exp_years,1)); end if;
-  return round(sk + pl + ex);
-end $$;
-
--- Block applying to omani_only jobs for non-omani users + stamp match
-create or replace function before_apply() returns trigger
-language plpgsql as $$
-declare j jobs; pr profiles;
-begin
-  select * into j  from jobs where id = new.job_id;
-  select * into pr from profiles where id = new.seeker_id;
-  if j.status <> 'active' then raise exception 'job is not open'; end if;
-  if j.nationality = 'omani_only' and not pr.is_omani then
-    raise exception 'job is for Omani nationals only';
-  end if;
-  new.match_pct := match_pct(new.seeker_id, new.job_id);
-  return new;
-end $$;
-create trigger trg_before_apply before insert on applications
-  for each row execute function before_apply();
-
--- Log status changes + notify the seeker
-create or replace function on_app_status() returns trigger
-language plpgsql as $$
-begin
-  if new.status is distinct from old.status then
-    new.updated_at := now();
-    insert into application_events(application_id, actor_id, from_status, to_status)
-    values (new.id, auth.uid(), old.status, new.status);
-    insert into notifications(user_id, title, body, data)
-    values (new.seeker_id, 'تحديث على طلبك',
-            'تغيّرت حالة طلبك إلى: ' || new.status::text,
-            jsonb_build_object('application_id', new.id));
-  end if;
-  return new;
-end $$;
-create trigger trg_app_status before update on applications
-  for each row execute function on_app_status();
-
--- Stamp publish date when admin approves
-create or replace function on_job_status() returns trigger
-language plpgsql as $$
-begin
-  if new.status = 'active' and old.status <> 'active' then
-    new.published_at := now();
-    new.expires_at   := now() + interval '30 days';
-  end if;
-  return new;
-end $$;
-create trigger trg_job_status before update on jobs
-  for each row execute function on_job_status();
-
--- Notify seekers whose alerts match a newly published job
-create or replace function notify_alerts() returns trigger
-language plpgsql as $$
-begin
-  if new.status = 'active' and old.status <> 'active' then
-    insert into notifications(user_id, title, body, data)
-    select a.user_id, 'وظيفة جديدة تناسبك', new.title,
-           jsonb_build_object('job_id', new.id)
-    from job_alerts a
-    where a.is_active
-      and (a.category_id is null or a.category_id = new.category_id)
-      and (a.wilayat_id  is null or a.wilayat_id  = new.wilayat_id);
-  end if;
-  return new;
-end $$;
-create trigger trg_notify_alerts after update on jobs
-  for each row execute function notify_alerts();
-
--- Expire old jobs (schedule with pg_cron daily)
-create or replace function expire_jobs() returns void
-language sql as $$
-  update jobs set status = 'expired' where status = 'active' and expires_at < now();
-$$;
-
--- Increment views safely
-create or replace function inc_job_views(p_job uuid) returns void
-language sql security definer as $$
-  update jobs set views = views + 1 where id = p_job and status = 'active';
-$$;
-
--- =====================================================
--- Row Level Security
--- =====================================================
-alter table profiles        enable row level security;
-alter table seeker_profiles enable row level security;
-alter table seeker_skills   enable row level security;
-alter table employers       enable row level security;
-alter table jobs            enable row level security;
-alter table applications    enable row level security;
-alter table saved_jobs      enable row level security;
-alter table job_alerts      enable row level security;
-alter table notifications   enable row level security;
-alter table reports         enable row level security;
-
-create or replace function is_admin() returns boolean
-language sql stable security definer as $$
+create or replace function public.is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
   select exists (select 1 from profiles where id = auth.uid() and role = 'admin');
 $$;
 
-create or replace function is_employer_member(p_emp uuid) returns boolean
-language sql stable security definer as $$
-  select exists (select 1 from employers where id = p_emp and owner_id = auth.uid())
-      or exists (select 1 from employer_members where employer_id = p_emp and user_id = auth.uid());
+-- هل الطلب يخص المستخدم الحالي (باحث أو صاحب الشركة)
+create or replace function public.app_party(p_app uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from applications a join jobs j on j.id = a.job_id join companies c on c.id = j.company_id
+    where a.id = p_app and (a.seeker_id = auth.uid() or c.owner_id = auth.uid()));
+$$;
+create or replace function public.app_owner(p_app uuid) returns uuid
+language sql stable security definer set search_path = public as $$
+  select c.owner_id from applications a join jobs j on j.id = a.job_id join companies c on c.id = j.company_id where a.id = p_app;
 $$;
 
-create policy prof_self   on profiles for select using (id = auth.uid() or is_admin());
-create policy prof_upd    on profiles for update using (id = auth.uid());
+-- استدعاء من التطبيق (وليس من SQL Editor أو المشغّلات)
+create or replace function public.api_call() returns boolean
+language sql stable as $$ select current_user in ('authenticated','anon'); $$;
 
-create policy sp_self     on seeker_profiles for all using (user_id = auth.uid());
-create policy sp_employer on seeker_profiles for select using (
-  exists (select 1 from applications a join jobs j on j.id = a.job_id
-          where a.seeker_id = seeker_profiles.user_id and is_employer_member(j.employer_id)));
-create policy ss_self     on seeker_skills for all using (user_id = auth.uid());
+-- نسبة المطابقة: المهارات 70% + المدينة 15% + الخبرة 15% (نفس منطق التطبيق)
+create or replace function public.match_score(p public.profiles, j public.jobs) returns int
+language sql stable as $$
+  select (round(
+    case when coalesce(cardinality(j.skills),0) = 0 then 0
+         else (select count(*) from unnest(j.skills) s
+               where lower(trim(s)) in (select lower(trim(x)) from unnest(p.skills) x))::numeric / cardinality(j.skills) * 70 end
+    + case when j.location = 'remote' or j.location = p.location then 15 else 0 end
+    + case when coalesce(p.exp_years,0) >= coalesce(j.exp_years,0) then 15
+           else 15.0 * coalesce(p.exp_years,0) / greatest(j.exp_years,1) end))::int;
+$$;
 
-create policy emp_read    on employers for select using (true);
-create policy emp_write   on employers for all using (owner_id = auth.uid() or is_admin());
-
-create policy job_public  on jobs for select using (status = 'active' or is_employer_member(employer_id) or is_admin());
-create policy job_write   on jobs for insert with check (is_employer_member(employer_id));
-create policy job_update  on jobs for update using (is_employer_member(employer_id) or is_admin());
-
-create policy app_seeker   on applications for select using (seeker_id = auth.uid());
-create policy app_insert   on applications for insert with check (seeker_id = auth.uid());
-create policy app_employer on applications for select using (
-  exists (select 1 from jobs j where j.id = job_id and is_employer_member(j.employer_id)));
-create policy app_emp_upd  on applications for update using (
-  exists (select 1 from jobs j where j.id = job_id and is_employer_member(j.employer_id)));
-
-create policy saved_self  on saved_jobs    for all using (user_id = auth.uid());
-create policy alert_self  on job_alerts    for all using (user_id = auth.uid());
-create policy notif_self  on notifications for all using (user_id = auth.uid());
-create policy rep_insert  on reports for insert with check (reporter_id = auth.uid());
-create policy rep_admin   on reports for select using (is_admin() or reporter_id = auth.uid());
+-- إنشاء إشعار بلغة المستلم
+create or replace function public.wz_notify(p_user uuid, p_type text, ar_t text, ar_b text, en_t text, en_b text, p_job uuid default null, p_app uuid default null)
+returns void language plpgsql security definer set search_path = public as $$
+declare l text;
+begin
+  if p_user is null then return; end if;
+  select lang into l from profiles where id = p_user;
+  insert into notifications(user_id, type, title, body, job_id, application_id)
+  values (p_user, p_type, case when l = 'en' then en_t else ar_t end, case when l = 'en' then en_b else ar_b end, p_job, p_app);
+end $$;
 
 -- =====================================================
--- Seed data
+-- المشغّلات (Triggers)
 -- =====================================================
-insert into wilayat (name_ar, name_en, governorate_ar) values
- ('مسقط','Muscat','مسقط'),('صلالة','Salalah','ظفار'),('صحار','Sohar','شمال الباطنة'),
- ('نزوى','Nizwa','الداخلية'),('صور','Sur','جنوب الشرقية'),('الرستاق','Rustaq','جنوب الباطنة'),
- ('عبري','Ibri','الظاهرة'),('الدقم','Duqm','الوسطى'),('خصب','Khasab','مسندم');
 
-insert into categories (name_ar, name_en) values
- ('محاسبة وإدارة','Accounting & Admin'),('مبيعات وتسويق','Sales & Marketing'),
- ('ضيافة وفنادق','Hospitality'),('هندسة وفنيون','Engineering & Technical'),
- ('تقنية معلومات','IT'),('تعليم','Education'),('صحة','Healthcare'),
- ('نقل وتوصيل','Transport & Delivery'),('خدمة عملاء','Customer Service'),
- ('أعمال مؤقتة','Gigs');
+-- إنشاء ملف تلقائياً عند التسجيل
+create or replace function public.handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into profiles (id, email, phone, full_name)
+  values (new.id, new.email, new.phone,
+          coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''))
+  on conflict (id) do nothing;
+  return new;
+end $$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+  for each row execute function public.handle_new_user();
 
-insert into plans (code, name_ar, price_omr, job_slots, featured_slots) values
- ('free','مجانية',0,2,0),('starter','أساسية',15,10,1),('pro','احترافية',40,50,5);
+-- حماية الملف: لا يمكن للمستخدم ترقية نفسه إلى مشرف
+create or replace function public.guard_profile() returns trigger
+language plpgsql as $$
+begin
+  if api_call() and not is_admin() then
+    if new.role = 'admin' and old.role is distinct from 'admin' then raise exception 'not allowed'; end if;
+    if old.role is not null and new.role is distinct from old.role then raise exception 'role already set'; end if;
+  end if;
+  new.updated_at := now();
+  return new;
+end $$;
+drop trigger if exists trg_guard_profile on public.profiles;
+create trigger trg_guard_profile before update on public.profiles for each row execute function public.guard_profile();
+
+-- حماية الشركة: التوثيق للمشرف فقط، وتغيير السجل يعيد التحقق
+create or replace function public.guard_company() returns trigger
+language plpgsql as $$
+begin
+  if api_call() and not is_admin() then
+    if tg_op = 'INSERT' then
+      new.status := 'pending'; new.verified_at := null; new.rating_avg := 0; new.rating_count := 0; new.apps_total := 0; new.apps_responded := 0;
+    else
+      new.status := old.status; new.verified_at := old.verified_at; new.reject_reason := old.reject_reason;
+      new.rating_avg := old.rating_avg; new.rating_count := old.rating_count; new.apps_total := old.apps_total; new.apps_responded := old.apps_responded;
+      if new.cr_number is distinct from old.cr_number or new.cr_doc_path is distinct from old.cr_doc_path then new.status := 'pending'; end if;
+    end if;
+  end if;
+  if new.status = 'verified' and (tg_op = 'INSERT' or old.status <> 'verified') then new.verified_at := now(); end if;
+  return new;
+end $$;
+drop trigger if exists trg_guard_company on public.companies;
+create trigger trg_guard_company before insert or update on public.companies for each row execute function public.guard_company();
+
+create or replace function public.after_company() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'UPDATE' and new.status is distinct from old.status and new.status in ('verified','rejected') then
+    perform wz_notify(new.owner_id, 'company',
+      case when new.status = 'verified' then 'تم توثيق شركتك ✓' else 'لم يتم توثيق الشركة' end, new.name || coalesce(' — ' || new.reject_reason, ''),
+      case when new.status = 'verified' then 'Your company is verified ✓' else 'Company verification declined' end, new.name || coalesce(' — ' || new.reject_reason, ''));
+  end if;
+  return null;
+end $$;
+drop trigger if exists trg_after_company on public.companies;
+create trigger trg_after_company after update on public.companies for each row execute function public.after_company();
+
+-- حماية الوظيفة: النشر والتمييز للمشرف، وصاحب العمل يغلق أو يعيد الفتح فقط
+create or replace function public.guard_job() returns trigger
+language plpgsql as $$
+begin
+  if api_call() and not is_admin() then
+    if tg_op = 'INSERT' then
+      new.status := 'pending'; new.featured := false; new.views := 0; new.published_at := null;
+    else
+      new.featured := old.featured; new.views := old.views; new.company_id := old.company_id;
+      if new.status is distinct from old.status and not (
+           (old.status = 'active' and new.status = 'closed') or
+           (old.status = 'closed' and new.status = 'active' and old.published_at is not null)) then
+        new.status := old.status;
+      end if;
+      -- تعديل محتوى وظيفة منشورة يعيدها للمراجعة
+      if old.status = 'active' and (new.title, new.description, new.salary_min, new.salary_max) is distinct from (old.title, old.description, old.salary_min, old.salary_max) then
+        new.status := 'pending';
+      end if;
+    end if;
+  end if;
+  if new.status = 'active' and (tg_op = 'INSERT' or old.status <> 'active') then
+    if new.published_at is null then new.published_at := now(); end if;
+    new.expires_at := now() + interval '45 days';
+  end if;
+  return new;
+end $$;
+drop trigger if exists trg_guard_job on public.jobs;
+create trigger trg_guard_job before insert or update on public.jobs for each row execute function public.guard_job();
+
+-- عند نشر وظيفة: إشعار صاحبها + إشعار الباحثين المناسبين لها
+create or replace function public.after_job() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare c companies;
+begin
+  select * into c from companies where id = new.company_id;
+  if tg_op = 'INSERT' and new.status = 'pending' then
+    insert into notifications(user_id, type, title, body, job_id)
+    select id, 'job_pending', 'وظيفة بانتظار المراجعة', c.name || ': ' || new.title, new.id from profiles where role = 'admin';
+    return null;
+  end if;
+  if tg_op = 'UPDATE' and new.status = 'active' and old.status = 'pending' then
+    perform wz_notify(c.owner_id, 'job_live', 'تم نشر وظيفتك ✓', new.title, 'Your job is live ✓', new.title, new.id);
+    -- الباحثون المناسبون: مطابقة 60%+، أو نفس التخصص المفضل بمطابقة 40%+، أو لديهم تنبيه مطابق
+    insert into notifications(user_id, type, title, body, job_id)
+    select p.id, 'job_match',
+           case when p.lang = 'en' then c.name || ' posted a job that fits you' else c.name || ' نزّلت وظيفة مناسبة لك' end,
+           case when p.lang = 'en' then new.title || ' — want to see the details?' else new.title || ' — هل تحب مشاهدة التفاصيل؟' end,
+           new.id
+    from profiles p
+    where p.role = 'seeker' and p.open_to_work
+      and not exists (select 1 from applications a where a.job_id = new.id and a.seeker_id = p.id)
+      and ( match_score(p, new) >= 60
+         or (p.pref_category = new.category and match_score(p, new) >= 40)
+         or exists (select 1 from job_alerts al where al.user_id = p.id
+                    and (al.category is null or al.category = new.category)
+                    and (al.location is null or al.location = new.location)) )
+    limit 5000;
+  elsif tg_op = 'UPDATE' and new.status = 'rejected' and old.status <> 'rejected' then
+    perform wz_notify(c.owner_id, 'job_rejected', 'لم تُعتمد وظيفتك', new.title, 'Your job was not approved', new.title, new.id);
+  end if;
+  return null;
+end $$;
+drop trigger if exists trg_after_job on public.jobs;
+create trigger trg_after_job after insert or update on public.jobs for each row execute function public.after_job();
+
+-- قبل التقديم: الوظيفة منشورة، حساب المطابقة، ونسخة من الملف
+create or replace function public.before_apply() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare j jobs; p profiles;
+begin
+  select * into j from jobs where id = new.job_id;
+  select * into p from profiles where id = new.seeker_id;
+  if j.status <> 'active' then raise exception 'job is not open'; end if;
+  if p.role is distinct from 'seeker' then raise exception 'only job seekers can apply'; end if;
+  new.status := 'new'; new.first_response_at := null;
+  new.match := match_score(p, j);
+  new.snapshot := jsonb_build_object('id', p.id, 'name', p.full_name, 'title', p.headline, 'loc', p.location, 'exp', p.exp_years,
+    'skills', to_jsonb(p.skills), 'about', p.about, 'edu', p.education, 'langs', to_jsonb(p.languages), 'experiences', p.experiences,
+    'phone', p.phone, 'email', p.email, 'cvTpl', p.cv_template, 'cvPath', p.cv_path);
+  return new;
+end $$;
+drop trigger if exists trg_before_apply on public.applications;
+create trigger trg_before_apply before insert on public.applications for each row execute function public.before_apply();
+
+create or replace function public.after_apply() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare j jobs; c companies;
+begin
+  select * into j from jobs where id = new.job_id;
+  select * into c from companies where id = j.company_id;
+  update companies set apps_total = apps_total + 1 where id = c.id;
+  perform wz_notify(c.owner_id, 'new_applicant', 'متقدم جديد', coalesce(new.snapshot->>'name','') || ' قدّم على ' || j.title,
+                 'New applicant', coalesce(new.snapshot->>'name','') || ' applied to ' || j.title, j.id, new.id);
+  return null;
+end $$;
+drop trigger if exists trg_after_apply on public.applications;
+create trigger trg_after_apply after insert on public.applications for each row execute function public.after_apply();
+
+-- تحديث حالة الطلب: صاحب العمل فقط (والباحث يسحب طلبه)، وتسجيل أول رد
+create or replace function public.guard_app() returns trigger
+language plpgsql as $$
+begin
+  if api_call() and not is_admin() then
+    new.job_id := old.job_id; new.seeker_id := old.seeker_id; new.snapshot := old.snapshot; new.match := old.match;
+    if auth.uid() = old.seeker_id and app_owner(old.id) is distinct from auth.uid() then
+      if new.status is distinct from old.status and new.status <> 'withdrawn' then new.status := old.status; end if;
+      new.first_response_at := old.first_response_at;
+    end if;
+  end if;
+  if new.status is distinct from old.status then
+    new.updated_at := now();
+    if old.status = 'new' and new.first_response_at is null and new.status <> 'withdrawn' then new.first_response_at := now(); end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists trg_guard_app on public.applications;
+create trigger trg_guard_app before update on public.applications for each row execute function public.guard_app();
+
+create or replace function public.after_app_update() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare j jobs; st_ar text; st_en text;
+begin
+  if old.first_response_at is null and new.first_response_at is not null then
+    update companies set apps_responded = apps_responded + 1 where id = (select company_id from jobs where id = new.job_id);
+  end if;
+  if new.status is distinct from old.status and new.status not in ('withdrawn','interview') then
+    select * into j from jobs where id = new.job_id;
+    st_ar := case new.status when 'reviewed' then 'تمت المراجعة' when 'interview' then 'مقابلة' when 'accepted' then 'مقبول 🎉' when 'rejected' then 'مرفوض' else 'جديد' end;
+    st_en := case new.status when 'reviewed' then 'Reviewed' when 'interview' then 'Interview' when 'accepted' then 'Accepted 🎉' when 'rejected' then 'Rejected' else 'New' end;
+    perform wz_notify(new.seeker_id, 'status', 'تحديث على طلبك', 'طلبك في «' || j.title || '» أصبح: ' || st_ar,
+                   'Application update', 'Your application for “' || j.title || '” is now: ' || st_en, j.id, new.id);
+  end if;
+  return null;
+end $$;
+drop trigger if exists trg_after_app_update on public.applications;
+create trigger trg_after_app_update after update on public.applications for each row execute function public.after_app_update();
+
+-- الرسائل: إشعار الطرف الآخر، ورسالة صاحب العمل تُحسب رداً
+create or replace function public.after_message() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare a applications; owner uuid; cname text;
+begin
+  select * into a from applications where id = new.application_id;
+  owner := app_owner(a.id);
+  if new.sender_id = owner then
+    if a.first_response_at is null then update applications set first_response_at = now() where id = a.id; end if;
+    select c.name into cname from companies c where c.owner_id = owner;
+    perform wz_notify(a.seeker_id, 'message', 'رسالة جديدة من ' || coalesce(cname,''), left(new.body, 120), 'New message from ' || coalesce(cname,''), left(new.body, 120), null, a.id);
+  else
+    perform wz_notify(owner, 'message', 'رسالة جديدة من ' || coalesce(a.snapshot->>'name',''), left(new.body, 120), 'New message from ' || coalesce(a.snapshot->>'name',''), left(new.body, 120), null, a.id);
+  end if;
+  return null;
+end $$;
+drop trigger if exists trg_after_message on public.messages;
+create trigger trg_after_message after insert on public.messages for each row execute function public.after_message();
+
+-- المقابلات: صاحب العمل يقترح، الباحث يختار أو يطلب موعداً آخر
+create or replace function public.guard_interview() returns trigger
+language plpgsql as $$
+begin
+  if api_call() and not is_admin() then
+    if tg_op = 'INSERT' then
+      if app_owner(new.application_id) is distinct from auth.uid() then raise exception 'only the employer can propose'; end if;
+      new.proposed_by := auth.uid(); new.status := 'proposed'; new.chosen_slot := null;
+    else
+      new.application_id := old.application_id; new.proposed_by := old.proposed_by;
+      if (select seeker_id from applications where id = old.application_id) = auth.uid() then
+        new.slots := old.slots; new.mode := old.mode; new.place := old.place; new.note := old.note;
+        if new.status not in ('confirmed','reschedule') then new.status := old.status; end if;
+        if new.status = 'confirmed' and not (new.chosen_slot = any(old.slots)) then raise exception 'invalid slot'; end if;
+      end if;
+    end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists trg_guard_interview on public.interviews;
+create trigger trg_guard_interview before insert or update on public.interviews for each row execute function public.guard_interview();
+
+create or replace function public.after_interview() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare a applications; j jobs; cname text;
+begin
+  select * into a from applications where id = new.application_id;
+  select * into j from jobs where id = a.job_id;
+  select name into cname from companies where id = j.company_id;
+  if tg_op = 'INSERT' then
+    update interviews set status = 'cancelled' where application_id = new.application_id and id <> new.id and status <> 'cancelled';
+    if a.status <> 'interview' then update applications set status = 'interview' where id = a.id; end if;
+    perform wz_notify(a.seeker_id, 'interview', 'دعوة لمقابلة 📅', cname || ' تقترح مواعيد لمقابلة «' || j.title || '»',
+                   'Interview invitation 📅', cname || ' proposed times for “' || j.title || '”', j.id, a.id);
+  elsif new.status is distinct from old.status and new.status in ('confirmed','reschedule') then
+    perform wz_notify(app_owner(a.id), 'interview',
+      case when new.status = 'confirmed' then 'تم تأكيد موعد المقابلة' else 'طلب موعد آخر' end, coalesce(a.snapshot->>'name','') || ' — ' || j.title,
+      case when new.status = 'confirmed' then 'Interview confirmed' else 'New time requested' end, coalesce(a.snapshot->>'name','') || ' — ' || j.title, j.id, a.id);
+  end if;
+  return null;
+end $$;
+drop trigger if exists trg_after_interview on public.interviews;
+create trigger trg_after_interview after insert or update on public.interviews for each row execute function public.after_interview();
+
+-- التقييمات: لمن قدّم على الشركة فقط، وتحديث متوسط التقييم
+create or replace function public.before_review() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from applications a join jobs j on j.id = a.job_id where a.seeker_id = new.seeker_id and j.company_id = new.company_id) then
+    raise exception 'apply to this company before rating it';
+  end if;
+  select full_name into new.reviewer_name from profiles where id = new.seeker_id;
+  new.created_at := now();
+  return new;
+end $$;
+drop trigger if exists trg_before_review on public.reviews;
+create trigger trg_before_review before insert or update on public.reviews for each row execute function public.before_review();
+
+create or replace function public.after_review() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare cid uuid := coalesce(new.company_id, old.company_id);
+begin
+  update companies c set rating_count = s.n, rating_avg = coalesce(s.a, 0)
+  from (select count(*) n, round(avg(rating)::numeric, 2) a from reviews where company_id = cid) s where c.id = cid;
+  return null;
+end $$;
+drop trigger if exists trg_after_review on public.reviews;
+create trigger trg_after_review after insert or update or delete on public.reviews for each row execute function public.after_review();
+
+-- =====================================================
+-- دوال يستدعيها التطبيق
+-- =====================================================
+create or replace function public.inc_job_views(p_job uuid) returns void
+language sql security definer set search_path = public as $$
+  update jobs set views = views + 1 where id = p_job and status = 'active';
+$$;
+
+-- حذف الحساب نهائياً (مطلوب أيضاً لنشر التطبيق في Google Play)
+create or replace function public.delete_my_account() returns void
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  delete from auth.users where id = auth.uid();
+end $$;
+
+-- عدّاد الاستخدام اليومي للذكاء الاصطناعي (تستدعيه دالة ai)
+create or replace function public.ai_hit(p_user uuid, p_limit int) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  insert into ai_usage(user_id, day, count) values (p_user, current_date, 1)
+  on conflict (user_id, day) do update set count = ai_usage.count + 1
+  returning count into n;
+  return n <= p_limit;
+end $$;
+
+-- إنهاء الوظائف القديمة (اختياري: جدولها يومياً من Database ← Cron)
+create or replace function public.expire_jobs() returns void
+language sql security definer set search_path = public as $$
+  update jobs set status = 'expired' where status = 'active' and expires_at < now();
+$$;
+
+-- =====================================================
+-- الصلاحيات (Row Level Security)
+-- =====================================================
+alter table public.profiles      enable row level security;
+alter table public.companies     enable row level security;
+alter table public.jobs          enable row level security;
+alter table public.applications  enable row level security;
+alter table public.messages      enable row level security;
+alter table public.interviews    enable row level security;
+alter table public.reviews       enable row level security;
+alter table public.saved_jobs    enable row level security;
+alter table public.job_alerts    enable row level security;
+alter table public.notifications enable row level security;
+alter table public.push_tokens   enable row level security;
+alter table public.reports       enable row level security;
+alter table public.ai_usage      enable row level security;
+
+-- الملفات: المستخدم نفسه، والمشرف، وصاحب العمل لمن تقدّم عنده
+drop policy if exists p_profiles_read on public.profiles;
+create policy p_profiles_read on public.profiles for select using (
+  id = auth.uid() or is_admin() or exists (
+    select 1 from applications a join jobs j on j.id = a.job_id join companies c on c.id = j.company_id
+    where a.seeker_id = profiles.id and c.owner_id = auth.uid()));
+drop policy if exists p_profiles_update on public.profiles;
+create policy p_profiles_update on public.profiles for update using (id = auth.uid() or is_admin());
+
+-- الشركات: البيانات العامة للجميع
+drop policy if exists p_companies_read on public.companies;
+create policy p_companies_read on public.companies for select using (true);
+drop policy if exists p_companies_insert on public.companies;
+create policy p_companies_insert on public.companies for insert with check (
+  owner_id = auth.uid() and exists (select 1 from profiles where id = auth.uid() and role = 'employer'));
+drop policy if exists p_companies_update on public.companies;
+create policy p_companies_update on public.companies for update using (owner_id = auth.uid() or is_admin());
+
+-- الوظائف: المنشورة للجميع، وصاحبها والمشرف يرون الكل
+drop policy if exists p_jobs_read on public.jobs;
+create policy p_jobs_read on public.jobs for select using (
+  status = 'active' or is_admin() or exists (select 1 from companies c where c.id = company_id and c.owner_id = auth.uid())
+  or exists (select 1 from applications a where a.job_id = jobs.id and a.seeker_id = auth.uid()));
+drop policy if exists p_jobs_insert on public.jobs;
+create policy p_jobs_insert on public.jobs for insert with check (exists (select 1 from companies c where c.id = company_id and c.owner_id = auth.uid()));
+drop policy if exists p_jobs_update on public.jobs;
+create policy p_jobs_update on public.jobs for update using (is_admin() or exists (select 1 from companies c where c.id = company_id and c.owner_id = auth.uid()));
+
+-- الطلبات
+drop policy if exists p_apps_read on public.applications;
+create policy p_apps_read on public.applications for select using (seeker_id = auth.uid() or is_admin() or app_owner(id) = auth.uid());
+drop policy if exists p_apps_insert on public.applications;
+create policy p_apps_insert on public.applications for insert with check (seeker_id = auth.uid());
+drop policy if exists p_apps_update on public.applications;
+create policy p_apps_update on public.applications for update using (seeker_id = auth.uid() or app_owner(id) = auth.uid() or is_admin());
+
+-- الرسائل والمقابلات: طرفا الطلب فقط
+drop policy if exists p_msgs_read on public.messages;
+create policy p_msgs_read on public.messages for select using (app_party(application_id) or is_admin());
+drop policy if exists p_msgs_insert on public.messages;
+create policy p_msgs_insert on public.messages for insert with check (sender_id = auth.uid() and app_party(application_id));
+drop policy if exists p_msgs_update on public.messages;
+create policy p_msgs_update on public.messages for update using (app_party(application_id));
+drop policy if exists p_iv_read on public.interviews;
+create policy p_iv_read on public.interviews for select using (app_party(application_id) or is_admin());
+drop policy if exists p_iv_insert on public.interviews;
+create policy p_iv_insert on public.interviews for insert with check (app_owner(application_id) = auth.uid());
+drop policy if exists p_iv_update on public.interviews;
+create policy p_iv_update on public.interviews for update using (app_party(application_id));
+
+-- التقييمات: عامة للقراءة
+drop policy if exists p_reviews_read on public.reviews;
+create policy p_reviews_read on public.reviews for select using (true);
+drop policy if exists p_reviews_write on public.reviews;
+create policy p_reviews_write on public.reviews for insert with check (seeker_id = auth.uid());
+drop policy if exists p_reviews_update on public.reviews;
+create policy p_reviews_update on public.reviews for update using (seeker_id = auth.uid());
+drop policy if exists p_reviews_delete on public.reviews;
+create policy p_reviews_delete on public.reviews for delete using (seeker_id = auth.uid() or is_admin());
+
+-- بيانات المستخدم الخاصة
+drop policy if exists p_saved on public.saved_jobs;
+create policy p_saved on public.saved_jobs for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists p_alerts on public.job_alerts;
+create policy p_alerts on public.job_alerts for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists p_notifs_read on public.notifications;
+create policy p_notifs_read on public.notifications for select using (user_id = auth.uid());
+drop policy if exists p_notifs_update on public.notifications;
+create policy p_notifs_update on public.notifications for update using (user_id = auth.uid());
+drop policy if exists p_tokens on public.push_tokens;
+create policy p_tokens on public.push_tokens for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- البلاغات: أي مستخدم يبلّغ، والمشرف يقرأ ويعالج
+drop policy if exists p_reports_insert on public.reports;
+create policy p_reports_insert on public.reports for insert with check (reporter_id = auth.uid());
+drop policy if exists p_reports_admin on public.reports;
+create policy p_reports_admin on public.reports for select using (is_admin());
+drop policy if exists p_reports_update on public.reports;
+create policy p_reports_update on public.reports for update using (is_admin());
+
+-- =====================================================
+-- تخزين الملفات (Storage)
+-- =====================================================
+insert into storage.buckets (id, name, public) values ('cvs', 'cvs', false) on conflict (id) do nothing;
+insert into storage.buckets (id, name, public) values ('cr-docs', 'cr-docs', false) on conflict (id) do nothing;
+
+drop policy if exists s_cv_own on storage.objects;
+create policy s_cv_own on storage.objects for all to authenticated
+  using (bucket_id = 'cvs' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'cvs' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists s_cv_employer on storage.objects;
+create policy s_cv_employer on storage.objects for select to authenticated using (
+  bucket_id = 'cvs' and (is_admin() or exists (
+    select 1 from applications a join jobs j on j.id = a.job_id join companies c on c.id = j.company_id
+    where c.owner_id = auth.uid() and a.seeker_id::text = (storage.foldername(name))[1])));
+drop policy if exists s_cr_own on storage.objects;
+create policy s_cr_own on storage.objects for all to authenticated
+  using (bucket_id = 'cr-docs' and ((storage.foldername(name))[1] = auth.uid()::text or is_admin()))
+  with check (bucket_id = 'cr-docs' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- =====================================================
+-- التحديث اللحظي (Realtime) للإشعارات والرسائل
+-- =====================================================
+do $$ begin
+  begin alter publication supabase_realtime add table public.notifications; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.messages; exception when others then null; end;
+end $$;
+
+-- =====================================================
+-- بعد التشغيل: اجعل حسابك مشرفاً (غيّر البريد ثم شغّل السطر بعد أول دخول لك):
+-- update public.profiles set role = 'admin' where email = 'your@gmail.com';
+-- =====================================================

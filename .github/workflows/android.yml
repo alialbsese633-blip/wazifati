@@ -27,7 +27,13 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Prepare Android project (web files, icons, splash)
+      - name: Firebase config (optional, for push notifications)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then echo "$GOOGLE_SERVICES_JSON" > google-services.json; fi
+
+      - name: Prepare Android project (web files, icons, splash, deep links)
         run: npm run android:prepare
 
       - name: Build APK
@@ -54,5 +60,5 @@ jobs:
           gh release delete apk-latest --yes --cleanup-tag || true
           gh release create apk-latest "$APK" \
             --title "وظيفتي - تطبيق أندرويد (أحدث نسخة)" \
-            --notes "ملف APK لتجربة تطبيق وظيفتي على أجهزة أندرويد. يُحدَّث تلقائياً مع كل تعديل على المشروع." \
+            --notes "ملف APK لتطبيق وظيفتي على أجهزة أندرويد. يُحدَّث تلقائياً مع كل تعديل على المشروع. إذا كانت نسخة قديمة مثبّتة باسم مختلف فاحذفها أولاً." \
             --latest

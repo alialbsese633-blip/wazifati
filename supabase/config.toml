@@ -1,0 +1,6 @@
+# إعدادات الدوال عند النشر بـ Supabase CLI
+[functions.ai]
+verify_jwt = true
+
+[functions.push]
+verify_jwt = false   # يحميها WEBHOOK_SECRET

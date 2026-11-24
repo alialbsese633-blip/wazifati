@@ -1,176 +1,185 @@
 /* =====================================================
-   مساعد وظيفتي الذكي
-   3 أوضاع تلقائية:
-   1) claude : داخل Claude (قدرة sample)
-   2) remote : خادم خاص (Supabase Edge Function) عبر js/config.js
-   3) local  : محرك محلي ذكي بدون إنترنت (احتياطي دائماً)
+   مساعد وظيفتي الذكي - 3 أوضاع تلقائية:
+   remote : الذكاء الحقيقي عبر دالة Supabase «ai» (في الرابط وتطبيق APK)
+   claude : داخل Claude (قدرة sample)
+   local  : محرك محلي احتياطي بدون إنترنت
    ===================================================== */
-const AI={
- mode:'local',sample:null,endpoint:null,key:null,
- async init(){
-  const cfg=window.WAZIFATI_CONFIG||{};
-  if(cfg.aiEndpoint){this.mode='remote';this.endpoint=cfg.aiEndpoint;this.key=cfg.supabaseAnonKey||''}
-  try{
-   if(window.claude&&typeof window.claude.use==='function'){
-    const s=await window.claude.use('sample');
-    if(s){this.sample=s;this.mode='claude'}
-   }
-  }catch(e){}
-  if(typeof onAIReady==='function')onAIReady();
- },
- label(){return {claude:'ذكاء اصطناعي متصل',remote:'ذكاء اصطناعي متصل',local:'الوضع الذكي المحلي'}[this.mode]},
+const AI = {
+  mode: 'local', sample: null,
+  async init() {
+    if (REAL) this.mode = 'remote';
+    try {
+      if (this.mode === 'local' && window.claude && typeof window.claude.use === 'function') {
+        const s = await window.claude.use('sample'); if (s) { this.sample = s; this.mode = 'claude'; }
+      }
+    } catch (e) {}
+    if (typeof onAIReady === 'function') onAIReady();
+  },
+  label() { return this.mode === 'local' ? L('الوضع المحلي', 'Offline mode') : L('ذكاء اصطناعي متصل', 'AI connected'); },
+  langLine() { return LANG === 'en' ? 'Reply in clear, simple English.' : 'اكتب بالعربية البسيطة الواضحة.'; },
 
- /* ---------- سياق المنصة ---------- */
- jobsCtx(){return activeJobs().map(j=>`#${j.id} | ${j.title} | ${emp(j.emp).name}${emp(j.emp).verified?' (موثّقة)':''} | ${j.wil} | ${j.type} | ${j.min}-${j.max} ر.ع${j.gig?' يومياً':' شهرياً'} | خبرة ${j.exp} | ${j.nat} | مهارات: ${j.skills.join('، ')}`).join('\n')},
- profileCtx(){const p=D.profile;return `الاسم: ${p.name}\nالمسمى: ${p.title}\nالولاية: ${p.wil}\nالجنسية: ${p.nat==='omani'?'عماني':'مقيم'}\nالخبرة: ${p.exp} سنوات\nالتعليم: ${p.edu}\nالمهارات: ${p.skills.join('، ')}\nنبذة: ${p.about}\nالخبرات: ${(p.experiences||[]).map(x=>x.title+' في '+x.company+' ('+x.period+')').join('؛ ')}`},
- base(){return `أنت «مساعد وظيفتي»، مساعد توظيف ذكي داخل منصة «وظيفتي» في سلطنة عُمان.
-اكتب بالعربية البسيطة الواضحة، باختصار ودقة، واستخدم نقاطاً قصيرة عند الحاجة. العملة: الريال العماني (ر.ع).
-لا تخترع وظائف أو شركات غير موجودة في القائمة. عندما تذكر وظيفة من القائمة اكتب بعدها رمزها هكذا: [[job:رقمها]].
-نبّه دائماً: لا يجوز دفع أي رسوم مقابل التوظيف.`},
+  /* ---------- السياق ---------- */
+  money(j) { return fmtMoney(j.min, j.cur) + '–' + fmtMoney(j.max, j.cur) + (j.gig ? L(' يومياً', '/day') : L(' شهرياً', '/month')); },
+  jobsCtx(limit = 80) {
+    return activeJobs().slice(0, limit).map(j => { const c = company(j.company), st = companyStats(c);
+      return `#${j.id} | ${j.title} | ${c.name}${c.status === 'verified' ? ' (موثّقة)' : ''} ★${st.rating.toFixed(1)} رد ${st.resp ?? '-'}% | ${nm(LOCS, j.loc)} | ${nm(TYPES, j.type)} | ${this.money(j)} | خبرة ${j.exp} | ${nm(CATS, j.cat)} | ${j.skills.join('، ')}`; }).join('\n');
+  },
+  profileCtx() {
+    const p = D.me || {}; if (!p.role) return 'المستخدم غير مسجل الدخول.';
+    if (p.role !== 'seeker') { const c = Store.myCompany(); return `المستخدم: ${p.name} (${p.role === 'admin' ? 'مشرف' : 'صاحب عمل'})${c ? ' — شركة ' + c.name + ' (' + c.status + ')' : ''}`; }
+    const apps = D.apps.filter(a => a.seeker === p.id).map(a => (job(a.job) || {}).title + ': ' + nm(STATUSES, a.status)).join('؛ ');
+    return `الاسم: ${p.name}\nالمسمى: ${p.title}\nالمدينة: ${nm(LOCS, p.loc)}\nالخبرة: ${p.exp} سنوات\nالتعليم: ${p.edu}\nالمهارات: ${(p.skills || []).join('، ')}\nنبذة: ${p.about}\nالخبرات: ${(p.experiences || []).map(x => x.title + ' في ' + x.company + ' (' + x.period + ')').join('؛ ')}\nطلباته: ${apps || 'لا يوجد'}`;
+  },
+  base(withGuide) {
+    return `أنت «سند»، المساعد الذكي داخل منصة «وظيفتي» للتوظيف (تبدأ في اليمن). ${this.langLine()} كن دقيقاً ومختصراً واستخدم نقاطاً قصيرة عند الحاجة.
+لا تخترع وظائف أو شركات غير موجودة في القائمة. عندما تذكر وظيفة من القائمة اكتب بعدها رمزها هكذا: [[job:رمزها]] (مثل [[job:${(activeJobs()[0] || { id: 'j1' }).id}]]).
+لا يجوز أن يدفع الباحث أي رسوم مقابل التوظيف.${withGuide && this.mode !== 'remote' ? '\n\nدليل التطبيق (أجب منه عن أسئلة الاستخدام):\n' + APP_GUIDE_TEXT(LANG) : ''}`;
+  },
 
- /* ---------- الاستدعاء العام ---------- */
- async call(prompt,{onText,tools,history=[]}={}){
-  if(this.mode==='claude'){
-   const msgs=[...history.slice(-8),{role:'user',content:prompt}];
-   const opts={cache:false};if(onText)opts.onText=x=>onText(x.text);if(tools)opts.tools=tools;
-   try{return (await this.sample(msgs,opts)).text}
-   catch(err){
-    if(tools&&err&&err.code!=='not_granted'&&err.code!=='rate_limited'){delete opts.tools;return (await this.sample(msgs,opts)).text}
-    if(err&&err.code==='not_granted'){this.mode='local';if(typeof onAIReady==='function')onAIReady()}
-    throw err;
-   }
+  /* ---------- الاستدعاء ---------- */
+  async call(prompt, { onText, history = [] } = {}) {
+    const msgs = [...history.slice(-8), { role: 'user', content: prompt }];
+    if (this.mode === 'claude') {
+      const opts = { cache: false }; if (onText) opts.onText = x => onText(x.text);
+      try { return (await this.sample(msgs, opts)).text; }
+      catch (err) { if (err && err.code === 'not_granted') { this.mode = 'local'; onAIReady && onAIReady(); } throw err; }
+    }
+    if (this.mode === 'remote') {
+      const tok = await Store.aiToken();
+      const r = await fetch(CFG.supabaseUrl + '/functions/v1/ai', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok, apikey: CFG.supabaseAnonKey }, body: JSON.stringify({ messages: msgs, lang: LANG }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 429) { const t = L('وصلت للحد اليومي للمساعد الذكي. جرّب غداً.', 'You reached today’s AI limit. Try again tomorrow.'); onText && onText(t); return t; }
+      if (!r.ok) throw new Error(j.error || 'ai ' + r.status);
+      if (onText) await this.type(j.text || '', onText); return j.text || '';
+    }
+    throw new Error('local');
+  },
+  async type(text, onText) { if (!onText) return text; const w = text.split(/(\s+)/); let out = ''; for (let i = 0; i < w.length; i++) { out += w[i]; if (i % 4 === 0) { onText(out); await new Promise(r => setTimeout(r, 10)); } } onText(text); return text; },
+  parseJSON(t) { try { return JSON.parse(t); } catch (e) { const m = String(t).match(/\{[\s\S]*\}/); if (m) { try { return JSON.parse(m[0]); } catch (_) {} } return null; } },
+  async run(task, data = {}, onText) {
+    const T = TASKS[task];
+    if (this.mode !== 'local') {
+      try {
+        const t = await this.call(T.prompt(data), { onText: T.json ? null : onText, history: data.history || [] });
+        if (T.json) { const v = this.parseJSON(t); if (v) return v; throw new Error('bad json'); }
+        return t;
+      } catch (e) { console.warn('AI fallback', e); }
+    }
+    const r = T.local(data); return T.json ? r : this.type(r, onText);
   }
-  if(this.mode==='remote'){
-   const r=await fetch(this.endpoint,{method:'POST',headers:{'Content-Type':'application/json',...(this.key?{Authorization:'Bearer '+this.key,apikey:this.key}:{})},
-    body:JSON.stringify({messages:[...history.slice(-8),{role:'user',content:prompt}]})});
-   if(!r.ok)throw new Error('ai http '+r.status);
-   const j=await r.json();const t=j.text||'';if(onText)onText(t);return t;
-  }
-  throw new Error('local');
- },
- async type(text,onText){ // تأثير كتابة سلس للوضع المحلي
-  if(!onText)return text;const w=text.split(/(\s+)/);let out='';
-  for(let i=0;i<w.length;i++){out+=w[i];if(i%3===0){onText(out);await new Promise(r=>setTimeout(r,14))}}
-  onText(text);return text;
- },
- parseJSON(t){try{return JSON.parse(t)}catch(e){const m=String(t).match(/\{[\s\S]*\}/);if(m){try{return JSON.parse(m[0])}catch(_){}}return null}},
-
- /* ---------- المهام ---------- */
- async run(task,data={},onText){
-  const T=TASKS[task];
-  if(this.mode!=='local'){
-   try{
-    const prompt=T.prompt(data);
-    const t=await this.call(prompt,{onText:T.json?null:onText,tools:T.tools?T.tools():undefined,history:data.history||[]});
-    if(T.json){const v=this.parseJSON(t);if(v)return v;throw new Error('bad json')}
-    return t;
-   }catch(e){/* ننتقل للمحرك المحلي */}
-  }
-  const r=T.local(data);
-  return T.json?r:this.type(r,onText);
- }
 };
 
-/* ============ محرك المهام ============ */
-const N=s=>String(s||'').toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي');
-const TASKS={
- chat:{
-  prompt:d=>`${AI.base()}
-دور المستخدم الآن: ${({seeker:'باحث عن عمل',employer:'صاحب عمل (شركة الواحة للضيافة)',admin:'مشرف المنصة'})[S.role]}.
-ملف الباحث:
+const N = s => String(s || '').toLowerCase().replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+const TASKS = {
+  chat: {
+    prompt: d => `${AI.base(true)}
+دور المستخدم: ${({ seeker: 'باحث عن عمل', employer: 'صاحب عمل', admin: 'مشرف المنصة' })[(D.me || {}).role] || 'زائر غير مسجل'}
 ${AI.profileCtx()}
 
 الوظائف المنشورة حالياً:
 ${AI.jobsCtx()}
 
 سؤال المستخدم: ${d.q}`,
-  tools:()=>[{name:'search_jobs',description:'ابحث في وظائف المنصة المنشورة حسب كلمة أو ولاية أو تخصص. يعيد قائمة مختصرة.',
-    inputSchema:{type:'object',properties:{query:{type:'string'},wilayat:{type:'string'},category:{type:'string'}}},
-    execute:i=>activeJobs().filter(j=>(!i.wilayat||j.wil===i.wilayat)&&(!i.category||j.cat===i.category)&&(!i.query||N([j.title,j.cat,...j.skills].join(' ')).includes(N(i.query)))).slice(0,8).map(j=>({id:j.id,title:j.title,wil:j.wil,salary:j.min+'-'+j.max}))},
-   {name:'my_applications',description:'طلبات التوظيف التي قدمها المستخدم وحالتها',inputSchema:{type:'object',properties:{}},
-    execute:()=>D.apps.filter(a=>a.mine).map(a=>({job:job(a.job).title,status:a.status}))}],
-  local:d=>localChat(d.q)
- },
- about:{
-  prompt:()=>`${AI.base()}\nأعد كتابة النبذة المهنية لهذا الباحث بأسلوب احترافي جذاب في 3 إلى 4 أسطر فقط، بصيغة المتكلم، بدون عناوين ولا رموز. اكتب النبذة فقط.\n\n${AI.profileCtx()}`,
-  local:()=>{const p=D.profile;return `${p.title} بخبرة ${p.exp} سنوات، أتميز بـ${p.skills.slice(0,3).join(' و')}. حاصل على ${p.edu||'مؤهل في مجالي'}، وعملت ${(p.experiences||[])[0]?'مؤخراً '+p.experiences[0].title+' في '+p.experiences[0].company:'في بيئات عمل منظمة'}. أحرص على الدقة والالتزام بالمواعيد، وأبحث عن فرصة في ${p.wil} أضيف فيها قيمة حقيقية وأطوّر مسيرتي المهنية.`}
- },
- cover:{
-  prompt:d=>`${AI.base()}\nاكتب رسالة تقديم قصيرة (5 إلى 7 أسطر) من الباحث إلى صاحب العمل لهذه الوظيفة. ابدأ بالتحية، اربط خبرته ومهاراته بمتطلبات الوظيفة تحديداً، واختم بشكر. بدون عناوين.\n\nالوظيفة: ${d.j.title} في ${emp(d.j.emp).name}\nالمتطلبات: ${d.j.reqs.join('، ')}\nالمهارات: ${d.j.skills.join('، ')}\n\n${AI.profileCtx()}`,
-  local:d=>{const p=D.profile,j=d.j,hit=j.skills.filter(s=>p.skills.map(N).includes(N(s)));return `السلام عليكم ورحمة الله،\n\nأتقدم بطلبي لوظيفة «${j.title}» لدى ${emp(j.emp).name}. أعمل ${p.title} بخبرة ${p.exp} سنوات${hit.length?'، وأمتلك المهارات التي تطلبونها مثل '+hit.join(' و'):''}. ${(p.experiences||[])[0]?'في عملي الحالي ('+p.experiences[0].company+') '+p.experiences[0].details:''}\n\nأنا مقيم في ${p.wil} وجاهز للمقابلة في الوقت الذي يناسبكم.\n\nشاكراً لكم وقتكم،\n${p.name}\n${p.phone}`}
- },
- fit:{
-  prompt:d=>`${AI.base()}\nقيّم مدى مناسبة الباحث لهذه الوظيفة بصراحة. اكتب: سطر خلاصة، ثم «نقاط القوة» (2-3 نقاط)، ثم «ما ينقصك» (1-3 نقاط)، ثم «نصيحة قبل التقديم» (سطر).\n\nالوظيفة: ${d.j.title} | ${d.j.wil} | خبرة ${d.j.exp} | ${d.j.nat}\nالمتطلبات: ${d.j.reqs.join('، ')}\nالمهارات: ${d.j.skills.join('، ')}\nنسبة المطابقة المحسوبة: ${match(d.j,D.profile)}%\n\n${AI.profileCtx()}`,
-  local:d=>{const p=D.profile,j=d.j,m=match(j,p),ps=p.skills.map(N);const hit=j.skills.filter(s=>ps.includes(N(s))),miss=j.skills.filter(s=>!ps.includes(N(s)));
-   return `**الخلاصة:** مطابقتك ${m}%، ${m>=75?'أنت مرشح قوي لهذه الوظيفة.':m>=50?'فرصتك جيدة مع بعض التحسينات.':'الوظيفة أعلى من ملفك الحالي قليلاً.'}\n\n**نقاط القوة**\n${hit.length?hit.map(s=>'- تمتلك مهارة '+s).join('\n'):'- لديك خبرة عامة يمكن البناء عليها'}\n${p.exp>=j.exp?'- خبرتك ('+p.exp+' سنوات) تكفي المطلوب':''}\n${p.wil===j.wil?'- أنت في نفس الولاية':''}\n\n**ما ينقصك**\n${miss.length?miss.map(s=>'- مهارة '+s+' غير مذكورة في ملفك'):['- لا شيء جوهري']}${p.exp<j.exp?'\n- الخبرة المطلوبة '+j.exp+' سنوات وخبرتك '+p.exp:''}\n\n**نصيحة قبل التقديم:** ${miss.length?'إن كنت تملك '+miss[0]+' فأضفها لملفك، واكتب رسالة تقديم تربط خبرتك بالمتطلبات.':'قدّم الآن مع رسالة تقديم قصيرة.'}`.replace(/\n{3,}/g,'\n\n')}
- },
- interview:{
-  prompt:d=>`${AI.base()}\nجهّز الباحث لمقابلة وظيفة «${d.j.title}». اكتب 6 أسئلة متوقعة مرقمة، وتحت كل سؤال سطر قصير يبدأ بـ «💡» يوضح كيف يجيب مستفيداً من خبرته. ثم نصيحتين عامتين لمقابلات العمل في عُمان.\n\nالمهارات المطلوبة: ${d.j.skills.join('، ')}\n\n${AI.profileCtx()}`,
-  local:d=>{const j=d.j,p=D.profile;const q=[['عرّفنا بنفسك باختصار.','ابدأ بمسماك وسنوات خبرتك ثم أبرز إنجاز.'],[`لماذا تريد العمل في ${emp(j.emp).name}؟`,'اذكر شيئاً محدداً عن الشركة وربطه بطموحك.'],...j.skills.slice(0,3).map(s=>[`حدثنا عن موقف استخدمت فيه مهارة ${s}.`,'استخدم أسلوب: الموقف، المهمة، ما فعلته، النتيجة.']),['ما الراتب الذي تتوقعه؟',`النطاق المعلن ${j.min}-${j.max} ر.ع، اذكر رقماً داخله مع مرونة.`]];
-   return q.map((x,i)=>`${i+1}. ${x[0]}\n💡 ${x[1]}`).join('\n\n')+`\n\n**نصيحتان:**\n- احضر قبل الموعد بـ10 دقائق ومعك نسخة من سيرتك وبطاقتك.\n- جهّز سؤالين تسألهما في النهاية عن مهام الوظيفة وفرص التطور.`}
- },
- jobad:{json:true,
-  prompt:d=>`${AI.base()}\nصاحب عمل في عُمان يريد نشر وظيفة بعنوان «${d.title}»${d.wil?' في '+d.wil:''}${d.notes?'. ملاحظاته: '+d.notes:''}.
-أعد فقط كائن JSON بهذا الشكل بدون أي نص آخر:
-{"desc":"وصف جذاب من 2-3 جمل","reqs":["متطلب","..."],"skills":["مهارة","..."],"cat":"واحد من: ${CATS.join(' | ')}","type":"واحد من: ${TYPES.join(' | ')}","exp":0,"min":0,"max":0}
-الرواتب بالريال العماني شهرياً وواقعية لسوق عُمان.`,
-  local:d=>{const t=N(d.title);const tp=JOB_TEMPLATES.find(x=>x.key.split('|').some(k=>t.includes(N(k)))||N(x.title).split(' ').some(w=>w.length>3&&t.includes(w)))||{desc:`نبحث عن ${d.title} ملتزم ومتحمس للانضمام إلى فريقنا، يتولى المهام اليومية للوظيفة بكفاءة ويعمل بروح الفريق.`,reqs:['خبرة مناسبة في المجال','مهارات تواصل جيدة','الالتزام والانضباط'],skills:['العمل ضمن فريق','تنظيم الوقت'],cat:CATS[0],type:'دوام كامل',exp:1,min:300,max:450};
-   return {desc:tp.desc,reqs:tp.reqs,skills:tp.skills,cat:tp.cat,type:tp.type,exp:tp.exp,min:tp.min,max:tp.max}}
- },
- shortlist:{
-  prompt:d=>`${AI.base()}\nأنت تساعد صاحب عمل. هؤلاء المتقدمون لوظيفة «${d.j.title}» (المهارات المطلوبة: ${d.j.skills.join('، ')}، الخبرة: ${d.j.exp}):\n${d.apps.map(a=>`- ${a.name} | ${a.wil} | خبرة ${a.exp} | مهارات: ${a.skills.join('، ')} | مطابقة ${match(d.j,a)}% | الحالة: ${a.status}`).join('\n')}\nرتّب أفضل 3 مع سبب سطر لكل واحد، ثم اقترح سؤالاً ذكياً لكل منهم في المقابلة.`,
-  local:d=>{const r=[...d.apps].sort((x,y)=>match(d.j,y)-match(d.j,x)).slice(0,3);if(!r.length)return 'لا يوجد متقدمون لهذه الوظيفة بعد.';
-   return `**أفضل المرشحين لوظيفة ${d.j.title}:**\n\n`+r.map((a,i)=>{const hit=d.j.skills.filter(s=>a.skills.map(N).includes(N(s)));return `${i+1}. **${a.name}** (مطابقة ${match(d.j,a)}%)\n- خبرة ${a.exp} سنوات${hit.length?'، ويمتلك: '+hit.join('، '):''}\n- سؤال مقترح: «حدثنا عن آخر مرة استخدمت فيها ${hit[0]||d.j.skills[0]} في عملك؟»`}).join('\n\n')}
- },
- fraud:{json:true,
-  prompt:d=>`أنت مدقق إعلانات وظائف في منصة عمانية. افحص هذا الإعلان بحثاً عن علامات الاحتيال (طلب رسوم، رواتب غير منطقية، تواصل خارج المنصة فقط، وعود مبالغ فيها، معلومات ناقصة).
-أعد فقط JSON: {"risk":0-100,"level":"منخفض|متوسط|مرتفع","reasons":["سبب قصير","..."],"advice":"توصية للمشرف في سطر"}
-الإعلان: ${d.j.title} | الجهة: ${emp(d.j.emp).name} (${emp(d.j.emp).verified?'موثّقة':'غير موثّقة'}) | الراتب ${d.j.min}-${d.j.max} ر.ع | خبرة ${d.j.exp} | النوع ${d.j.type}\nالوصف: ${d.j.desc}\nالمتطلبات: ${d.j.reqs.join('، ')}`,
-  local:d=>localFraud(d.j)
- }
+    local: d => localChat(d.q)
+  },
+  about: {
+    prompt: () => `${AI.base()}\nأعد كتابة النبذة المهنية لهذا الباحث بأسلوب احترافي جذاب في 3 إلى 4 أسطر فقط، بصيغة المتكلم، بدون عناوين ولا رموز. اكتب النبذة فقط.\n\n${AI.profileCtx()}`,
+    local: () => { const p = D.me; return L(`${p.title} بخبرة ${p.exp} سنوات، أتميز بـ${(p.skills || []).slice(0, 3).join(' و')}. حاصل على ${p.edu || 'مؤهل في مجالي'}${(p.experiences || [])[0] ? '، وعملت مؤخراً ' + p.experiences[0].title + ' في ' + p.experiences[0].company : ''}. أحرص على الدقة والالتزام، وأبحث عن فرصة في ${nm(LOCS, p.loc)} أضيف فيها قيمة حقيقية وأطوّر مسيرتي.`,
+      `${p.title} with ${p.exp} years of experience, strong in ${(p.skills || []).slice(0, 3).join(', ')}. I hold ${p.edu || 'a relevant qualification'}${(p.experiences || [])[0] ? ' and most recently worked as ' + p.experiences[0].title + ' at ' + p.experiences[0].company : ''}. I am precise and reliable, looking for a role in ${nm(LOCS, p.loc)} where I can add real value.`); }
+  },
+  cover: {
+    prompt: d => `${AI.base()}\nاكتب رسالة تقديم قصيرة (5 إلى 7 أسطر) من الباحث إلى صاحب العمل لهذه الوظيفة. ابدأ بالتحية، اربط خبرته ومهاراته بمتطلبات الوظيفة تحديداً، واختم بشكر واسمه. بدون عناوين.\n\nالوظيفة: ${d.j.title} في ${company(d.j.company).name}\nالمتطلبات: ${d.j.reqs.join('، ')}\nالمهارات: ${d.j.skills.join('، ')}\n\n${AI.profileCtx()}`,
+    local: d => { const p = D.me, j = d.j, hit = j.skills.filter(s => (p.skills || []).map(N).includes(N(s)));
+      return L(`السلام عليكم ورحمة الله،\n\nأتقدم بطلبي لوظيفة «${j.title}» لدى ${company(j.company).name}. أعمل ${p.title} بخبرة ${p.exp} سنوات${hit.length ? '، وأمتلك المهارات التي تطلبونها مثل ' + hit.join(' و') : ''}. ${(p.experiences || [])[0] ? 'في عملي الحالي ' + p.experiences[0].details : ''}\n\nأنا في ${nm(LOCS, p.loc)} وجاهز للمقابلة في الوقت الذي يناسبكم.\n\nشاكراً لكم وقتكم،\n${p.name}`,
+        `Dear Hiring Team,\n\nI am applying for the “${j.title}” role at ${company(j.company).name}. I work as ${p.title} with ${p.exp} years of experience${hit.length ? ' and bring the skills you need, including ' + hit.join(', ') : ''}.\n\nI am based in ${nm(LOCS, p.loc)} and available for an interview at your convenience.\n\nKind regards,\n${p.name}`); }
+  },
+  fit: {
+    prompt: d => `${AI.base()}\nقيّم مدى مناسبة الباحث لهذه الوظيفة بصراحة. اكتب: سطر خلاصة، ثم «نقاط القوة» (2-3 نقاط)، ثم «ما ينقصك» (1-3 نقاط)، ثم «نصيحة قبل التقديم» (سطر).\n\nالوظيفة: ${d.j.title} | ${nm(LOCS, d.j.loc)} | خبرة ${d.j.exp}\nالمتطلبات: ${d.j.reqs.join('، ')}\nالمهارات: ${d.j.skills.join('، ')}\nنسبة المطابقة المحسوبة: ${matchScore(d.j, D.me)}%\n\n${AI.profileCtx()}`,
+    local: d => { const p = D.me, j = d.j, m = matchScore(j, p), ps = (p.skills || []).map(N), hit = j.skills.filter(s => ps.includes(N(s))), miss = j.skills.filter(s => !ps.includes(N(s)));
+      return [L('**الخلاصة:** مطابقتك ', '**Summary:** your match is ') + m + '%، ' + (m >= 75 ? L('أنت مرشح قوي.', 'you are a strong candidate.') : m >= 50 ? L('فرصتك جيدة مع بعض التحسينات.', 'good chance with some improvements.') : L('الوظيفة أعلى من ملفك الحالي قليلاً.', 'this role is a stretch for now.')),
+        '', L('**نقاط القوة**', '**Strengths**'), ...(hit.length ? hit.map(s => '- ' + s) : [L('- خبرة عامة يمكن البناء عليها', '- General experience to build on')]), ...((+p.exp >= j.exp) ? [L('- خبرتك تكفي المطلوب', '- Your experience meets the requirement')] : []),
+        '', L('**ما ينقصك**', '**Gaps**'), ...(miss.length ? miss.map(s => '- ' + s) : [L('- لا شيء جوهري', '- Nothing major')]),
+        '', L('**نصيحة:** ', '**Tip:** ') + (miss.length ? L('إن كنت تملك ' + miss[0] + ' فأضفها لملفك واكتب رسالة تقديم تربط خبرتك بالمتطلبات.', 'If you have ' + miss[0] + ', add it to your profile and write a cover note linking your experience to the requirements.') : L('قدّم الآن مع رسالة قصيرة.', 'Apply now with a short note.'))].join('\n'); }
+  },
+  interview: {
+    prompt: d => `${AI.base()}\nجهّز الباحث لمقابلة وظيفة «${d.j.title}». اكتب 6 أسئلة متوقعة مرقمة، وتحت كل سؤال سطر يبدأ بـ «💡» يوضح كيف يجيب مستفيداً من خبرته. ثم نصيحتين عامتين للمقابلات.\n\nالمهارات المطلوبة: ${d.j.skills.join('، ')}\n\n${AI.profileCtx()}`,
+    local: d => { const j = d.j; const q = [[L('عرّفنا بنفسك باختصار.', 'Tell us about yourself.'), L('ابدأ بمسماك وسنوات خبرتك ثم أبرز إنجاز.', 'Start with your title and years of experience, then one achievement.')], [L('لماذا تريد العمل معنا؟', 'Why do you want to work with us?'), L('اذكر شيئاً محدداً عن الشركة.', 'Mention something specific about the company.')], ...j.skills.slice(0, 3).map(s => [L('حدثنا عن موقف استخدمت فيه ' + s + '.', 'Describe a time you used ' + s + '.'), L('الموقف، ما فعلته، النتيجة.', 'Situation, action, result.')]), [L('ما الراتب الذي تتوقعه؟', 'What salary do you expect?'), L('النطاق المعلن ', 'Advertised range ') + AI.money(j)]];
+      return q.map((x, i) => `${i + 1}. ${x[0]}\n💡 ${x[1]}`).join('\n\n') + L('\n\n**نصيحتان:**\n- احضر قبل الموعد بـ10 دقائق ومعك نسخة من سيرتك.\n- جهّز سؤالين تسألهما في النهاية.', '\n\n**Two tips:**\n- Arrive 10 minutes early with a copy of your CV.\n- Prepare two questions to ask at the end.'); }
+  },
+  jobad: { json: true,
+    prompt: d => `${AI.base()}\nصاحب عمل في اليمن يريد نشر وظيفة بعنوان «${d.title}»${d.loc ? ' في ' + nm(LOCS, d.loc) : ''}.
+أعد فقط كائن JSON بدون أي نص آخر:
+{"desc":"وصف جذاب من 2-3 جمل","reqs":["متطلب"],"skills":["مهارة"],"cat":"واحد من: ${CATS.map(c => c.id).join('|')}","type":"واحد من: ${TYPES.map(c => c.id).join('|')}","exp":0,"min":0,"max":0,"cur":"YER|USD|SAR"}
+الرواتب شهرية وواقعية لسوق اليمن (الريال اليمني للوظائف المحلية، والدولار شائع للمنظمات والتقنية عن بعد). اكتب النصوص بـ${LANG === 'en' ? 'الإنجليزية' : 'العربية'}.`,
+    local: d => { const t = N(d.title); const tp = JOB_TEMPLATES.find(x => x.key.split('|').some(k => t.includes(N(k)))) || { desc: L(`نبحث عن ${d.title} ملتزم ومتحمس للانضمام إلى فريقنا، يتولى المهام اليومية للوظيفة بكفاءة ويعمل بروح الفريق.`, `We are looking for a committed ${d.title} to join our team and handle the role’s daily duties efficiently.`), reqs: [L('خبرة مناسبة في المجال', 'Relevant experience'), L('مهارات تواصل جيدة', 'Good communication skills')], skills: ['تواصل'], cat: 'admin', type: 'full_time', exp: 1, min: 80000, max: 150000, cur: 'YER' };
+      return { desc: tp.desc, reqs: tp.reqs, skills: tp.skills, cat: tp.cat, type: tp.type, exp: tp.exp, min: tp.min, max: tp.max, cur: tp.cur }; }
+  },
+  shortlist: {
+    prompt: d => `${AI.base()}\nأنت تساعد صاحب عمل. هؤلاء المتقدمون لوظيفة «${d.j.title}» (المهارات: ${d.j.skills.join('، ')}، الخبرة: ${d.j.exp}):\n${d.apps.map(a => `- ${a.snap.name} | ${nm(LOCS, a.snap.loc)} | خبرة ${a.snap.exp} | ${(a.snap.skills || []).join('، ')} | مطابقة ${matchScore(d.j, a.snap)}% | الحالة: ${nm(STATUSES, a.status)}`).join('\n')}\nرتّب أفضل 3 مع سبب سطر لكل واحد، ثم سؤال ذكي لكل منهم في المقابلة.`,
+    local: d => { const r = [...d.apps].sort((x, y) => matchScore(d.j, y.snap) - matchScore(d.j, x.snap)).slice(0, 3); if (!r.length) return L('لا يوجد متقدمون بعد.', 'No applicants yet.');
+      return L('**أفضل المرشحين لـ ', '**Top candidates for ') + d.j.title + ':**\n\n' + r.map((a, i) => { const hit = d.j.skills.filter(s => (a.snap.skills || []).map(N).includes(N(s))); return `${i + 1}. **${a.snap.name}** (${matchScore(d.j, a.snap)}%)\n- ${L('خبرة', 'Experience')} ${a.snap.exp}${hit.length ? ' · ' + hit.join('، ') : ''}\n- ${L('سؤال مقترح: «حدثنا عن آخر مرة استخدمت فيها', 'Suggested question: “Tell us about the last time you used')} ${hit[0] || d.j.skills[0]}»`; }).join('\n\n'); }
+  },
+  fraud: { json: true,
+    prompt: d => `أنت مدقق إعلانات وظائف في منصة يمنية. افحص الإعلان بحثاً عن علامات الاحتيال (طلب رسوم أو تحويل مال، رواتب غير منطقية، تواصل خارج المنصة فقط، وعود مبالغ فيها، معلومات ناقصة).
+أعد فقط JSON: {"risk":0-100,"level":"منخفض|متوسط|مرتفع","reasons":["سبب"],"advice":"توصية للمشرف في سطر"}
+الإعلان: ${d.j.title} | الجهة: ${company(d.j.company).name} (${company(d.j.company).status === 'verified' ? 'موثّقة' : 'غير موثّقة'}) | الراتب ${AI.money(d.j)} | خبرة ${d.j.exp}\nالوصف: ${d.j.desc}\nالمتطلبات: ${d.j.reqs.join('، ')}`,
+    local: d => localFraud(d.j)
+  },
+  parsecv: { json: true,
+    prompt: d => `استخرج بيانات هذه السيرة الذاتية بدقة دون اختراع معلومات غير موجودة. أعد فقط JSON:
+{"name":"","title":"المسمى الوظيفي","email":"","phone":"","loc":"واحد من: ${LOCS.map(l => l.id).join('|')} أو فارغ","exp":0,"edu":"أعلى مؤهل والجهة","skills":["حتى 12 مهارة قصيرة"],"langs":["اللغة (المستوى)"],"about":"نبذة مهنية 2-3 أسطر بصيغة المتكلم","experiences":[{"title":"","company":"","period":"","details":"سطر"}]}
+اكتب القيم بـ${LANG === 'en' ? 'الإنجليزية' : 'العربية'} إن أمكن مع إبقاء أسماء الجهات كما هي.
+
+نص السيرة:
+${d.text}`,
+    local: d => CVParse.local(d.text)
+  }
 };
 
-function localFraud(j){
- const t=N(j.title+' '+j.desc+' '+j.reqs.join(' '));let risk=0;const reasons=[];
- const rules=[[/رسوم|رسم|تحويل|ادفع|دفع مبلغ|تامين مالي/, 45,'يطلب مبلغاً أو رسوماً من الباحث'],[/واتساب فقط|تواصل خاص|خارج المنصه/,15,'يطلب التواصل خارج المنصة فقط'],[/سهله|من البيت|بدون خبره|لا يشترط/,10,'وعود عمل سهل بلا شروط'],[/راتب عالي|مضمون|ارباح/,10,'مبالغة في وعود الدخل']];
- rules.forEach(([re,w,why])=>{if(re.test(t)){risk+=w;reasons.push(why)}});
- const avg=(j.min+j.max)/2;if(!j.gig&&j.exp===0&&avg>700){risk+=20;reasons.push('راتب مرتفع جداً لوظيفة بلا خبرة')}
- if(!emp(j.emp).verified){risk+=10;reasons.push('الجهة غير موثّقة')}
- if(j.desc.length<40){risk+=5;reasons.push('الوصف قصير وغير واضح')}
- risk=Math.min(100,risk);const level=risk>=50?'مرتفع':risk>=20?'متوسط':'منخفض';
- return {risk,level,reasons:reasons.length?reasons:['لا توجد علامات احتيال واضحة'],advice:risk>=50?'ارفض الإعلان وتواصل مع الجهة للتحقق.':risk>=20?'راجع الجهة قبل النشر.':'آمن للنشر.'};
+function localFraud(j) {
+  const t = N(j.title + ' ' + j.desc + ' ' + j.reqs.join(' ')); let risk = 0; const reasons = [];
+  [[/رسوم|رسم|تحويل|ادفع|دفع مبلغ|تامين مالي|fee|deposit|pay /, 45, L('يطلب مبلغاً أو رسوماً من الباحث', 'Asks seekers for money or fees')], [/واتساب فقط|تواصل خاص|خارج المنصه|whatsapp only/, 15, L('يطلب التواصل خارج المنصة فقط', 'Wants contact outside the platform only')], [/سهله|من البيت|بدون خبره|لا يشترط|easy/, 10, L('وعود عمل سهل بلا شروط', 'Promises easy work with no requirements')], [/راتب عالي|مضمون|ارباح|guaranteed/, 10, L('مبالغة في وعود الدخل', 'Exaggerated income promises')]]
+    .forEach(([re, w, why]) => { if (re.test(t)) { risk += w; reasons.push(why); } });
+  const usd = j.cur === 'USD' ? j.max : j.cur === 'SAR' ? j.max / 3.75 : j.max / 1500;
+  if (!j.gig && j.exp === 0 && usd > 400) { risk += 20; reasons.push(L('راتب مرتفع جداً لوظيفة بلا خبرة', 'Very high pay for a no-experience job')); }
+  if (company(j.company).status !== 'verified') { risk += 10; reasons.push(L('الجهة غير موثّقة', 'Company not verified')); }
+  if (j.desc.length < 40) { risk += 5; reasons.push(L('الوصف قصير وغير واضح', 'Short, unclear description')); }
+  risk = Math.min(100, risk); const level = risk >= 50 ? L('مرتفع', 'High') : risk >= 20 ? L('متوسط', 'Medium') : L('منخفض', 'Low');
+  return { risk, level, reasons: reasons.length ? reasons : [L('لا توجد علامات احتيال واضحة', 'No clear fraud signals')], advice: risk >= 50 ? L('ارفض الإعلان وتواصل مع الجهة للتحقق.', 'Reject and contact the company to verify.') : risk >= 20 ? L('راجع الجهة قبل النشر.', 'Check the company before publishing.') : L('آمن للنشر.', 'Safe to publish.') };
 }
 
-function localChat(q){
- const n=N(q),p=D.profile,all=activeJobs();
- const wil=WIL.find(w=>n.includes(N(w)));
- const cat=CATS.find(c=>c.split(' ').some(w=>w.length>3&&n.includes(N(w))));
- const words=n.split(/\s+/).filter(w=>w.length>2);
- const kw=all.filter(j=>words.some(w=>N([j.title,...j.skills].join(' ')).includes(w.replace(/^ال/,''))));
- const has=re=>re.test(n);
- if(has(/رسوم|نصب|احتيال|دفع|يطلبون مبلغ/))return 'انتبه: **لا تدفع أي مبلغ مقابل التوظيف** مهما كان السبب.\n- الجهات الموثّقة عليها علامة ✓\n- إذا طلب منك إعلان رسوماً، افتح الوظيفة واضغط «أبلغ عنها» وسنوقفها فوراً.';
- if(has(/سير|cv|سي في/))return `لتقوية سيرتك:\n- اكتب نبذة من 3 أسطر تبدأ بمسماك وخبرتك (زر «حسّن بالذكاء» في ملفي يكتبها لك)\n- أضف 5 مهارات على الأقل، لديك الآن ${p.skills.length}\n- اذكر خبراتك بالأرقام والنتائج\n- اختر قالباً من «قوالب السيرة»: الخنجر للإدارة، اللبان للعصري، مسقط للبسيط، الخريف للإبداعي.`;
- if(has(/مقابله|interview/))return 'أكثر أسئلة المقابلات شيوعاً:\n1. عرّفنا بنفسك\n2. لماذا تركت عملك السابق؟\n3. ما نقاط قوتك وضعفك؟\n4. أين ترى نفسك بعد 3 سنوات؟\n5. كم الراتب المتوقع؟\n\nافتح أي وظيفة واضغط «جهّزني للمقابلة» لأسئلة مخصصة لها.';
- if(has(/راتب|رواتب|معاش|كم يعطون/)){const list=all.filter(j=>!j.gig&&(!cat||j.cat===cat));const g={};list.forEach(j=>{(g[j.cat]=g[j.cat]||[]).push(j)});
-  return '**متوسط الرواتب المعلنة في المنصة (شهرياً):**\n'+Object.entries(g).map(([c,a])=>`- ${c}: ${Math.round(a.reduce((s,j)=>s+j.min,0)/a.length)} إلى ${Math.round(a.reduce((s,j)=>s+j.max,0)/a.length)} ر.ع`).join('\n')}
- if(has(/طلبات|طلبي|قدمت/)){const a=D.apps.filter(x=>x.mine);return a.length?'**طلباتك:**\n'+a.map(x=>`- ${job(x.job).title}: ${x.status} [[job:${x.job}]]`).join('\n'):'لم تقدّم على أي وظيفة بعد. قل لي ما تبحث عنه وأقترح لك.'}
- if(wil||cat||kw.length||has(/وظيف|شغل|عمل|فرص|ابحث|ابي|ابغي|اريد|مناسب|تناسبني|اقترح/)){
-  let r=all.filter(j=>(!wil||j.wil===wil)&&(!cat||j.cat===cat));
-  if(kw.length&&!has(/تناسبني|مناسب|اقترح/)){const f=r.filter(j=>kw.includes(j));if(f.length)r=f}
-  if(!r.length)r=all;
-  r=r.filter(fits).sort((x,y)=>match(y,p)-match(x,p)).slice(0,4);
-  if(!r.length)return 'لم أجد وظائف مطابقة الآن. فعّل تنبيهاً من صفحة «التنبيهات» وسأخبرك فور نشر وظيفة مناسبة.';
-  return `وجدت لك ${r.length} ${wil?'في '+wil:''} مرتبة حسب مطابقتها لملفك:\n`+r.map(j=>`- **${j.title}** في ${emp(j.emp).name}، ${j.min}-${j.max} ر.ع، مطابقة ${match(j,p)}% [[job:${j.id}]]`).join('\n')+'\n\nاضغط على أي وظيفة لفتحها.';
- }
- if(S.role==='employer')return 'أستطيع مساعدتك في:\n- كتابة إعلان وظيفة كامل من المسمى فقط (صفحة «نشر وظيفة»)\n- ترتيب أفضل المتقدمين (صفحة «المتقدمون» ثم «رشّح لي الأفضل»)\n- اقتراح رواتب مناسبة للسوق، اسألني: كم رواتب المحاسبين؟';
- return 'أهلاً! أنا مساعد وظيفتي 👋 جرّب أن تسألني:\n- أبغى وظيفة في صلالة\n- ما الوظائف التي تناسبني؟\n- كم رواتب المحاسبة؟\n- كيف أحسّن سيرتي؟\n- كيف أستعد للمقابلة؟';
+function localChat(q) {
+  const n = N(q), p = D.me || {}, all = activeJobs(), has = re => re.test(n);
+  // أسئلة الاستخدام من دليل التطبيق
+  const howTo = has(/كيف|وين|اين|ماذا|ايش|شنو|هل|how|where|what|can i/);
+  const stem = k => N(k).replace(/^ال/, '').replace(/[هي]$/, '');
+  const g = APP_GUIDE.map(x => ({ x, s: x.k.split('|').filter(k => { const kn = N(k), ks = stem(k); return n.includes(kn) || (ks.length >= 3 && n.includes(ks)); }).length })).sort((a, b) => b.s - a.s)[0];
+  if (q && g && g.s && (howTo || !has(/وظيف|شغل|job/))) return LANG === 'en' ? g.x.en : g.x.ar;
+  const loc = LOCS.find(w => n.includes(N(w.ar)) || n.includes(w.en.toLowerCase()));
+  const cat = CATS.find(c => c.ar.split(' ').some(w => w.length > 3 && n.includes(N(w))));
+  const words = n.split(/\s+/).filter(w => w.length > 2);
+  const kw = all.filter(j => words.some(w => N([j.title, ...j.skills].join(' ')).includes(w.replace(/^ال/, ''))));
+  if (has(/رسوم|نصب|احتيال|يطلبون مبلغ|scam|fee/)) return LANG === 'en' ? APP_GUIDE[10].en : APP_GUIDE[10].ar;
+  if (has(/راتب|رواتب|معاش|كم يعطون|salary/)) {
+    const g2 = {}; all.filter(j => !j.gig && (!cat || j.cat === cat.id)).forEach(j => { const k = nm(CATS, j.cat) + ' (' + nm(CURS, j.cur) + ')'; (g2[k] = g2[k] || []).push(j); });
+    return L('**متوسط الرواتب المعلنة (شهرياً):**\n', '**Average advertised salaries (monthly):**\n') + Object.entries(g2).map(([c, a]) => `- ${c}: ${fmtNum(a.reduce((s, j) => s + j.min, 0) / a.length)} – ${fmtNum(a.reduce((s, j) => s + j.max, 0) / a.length)}`).join('\n');
+  }
+  if (has(/طلبات|طلبي|قدمت|my applications/)) { const a = D.apps.filter(x => x.seeker === p.id); return a.length ? L('**طلباتك:**\n', '**Your applications:**\n') + a.map(x => `- ${(job(x.job) || {}).title}: ${nm(STATUSES, x.status)} [[job:${x.job}]]`).join('\n') : L('لم تقدّم على أي وظيفة بعد. قل لي ما تبحث عنه.', 'You have not applied yet. Tell me what you are looking for.'); }
+  if (loc || cat || kw.length || has(/وظيف|شغل|عمل|فرص|ابحث|ابي|ابغي|اريد|مناسب|تناسبني|اقترح|job|work|suggest/)) {
+    let r = all.filter(j => (!loc || j.loc === loc.id) && (!cat || j.cat === cat.id));
+    if (kw.length && !has(/تناسبني|مناسب|اقترح|suit/)) { const f = r.filter(j => kw.includes(j)); if (f.length) r = f; }
+    if (!r.length) r = all;
+    r = r.sort((x, y) => matchScore(y, p) - matchScore(x, p)).slice(0, 4);
+    return L(`وجدت لك ${r.length} ${loc ? 'في ' + loc.ar : ''} مرتبة حسب مطابقتها لملفك:\n`, `Here are ${r.length} jobs${loc ? ' in ' + loc.en : ''}, ranked by match:\n`) + r.map(j => `- **${j.title}** — ${company(j.company).name}، ${AI.money(j)}، ${L('مطابقة', 'match')} ${matchScore(j, p)}% [[job:${j.id}]]`).join('\n');
+  }
+  if (p.role === 'employer') return L('أستطيع مساعدتك في:\n- كتابة إعلان كامل من المسمى فقط (نشر وظيفة)\n- ترشيح أفضل المتقدمين (المتقدمون ← رشّح لي الأفضل)\n- جدولة المقابلات والمحادثة مع المتقدمين\n- اقتراح رواتب مناسبة: اسألني «كم رواتب المحاسبين؟»', 'I can help you:\n- Write a full job ad from just the title\n- Shortlist the best applicants\n- Schedule interviews and chat with applicants\n- Suggest fair salaries — ask “what do accountants earn?”');
+  return L('أهلاً! أنا سند، مساعدك الذكي في وظيفتي 👋 جرّب:\n- أبغى وظيفة في عدن\n- ما الوظائف التي تناسبني؟\n- كم رواتب المحاسبة؟\n- كيف أرفع سيرتي؟\n- كيف أوثّق شركتي؟', 'Hi! I’m Sanad, your Wazifati AI 👋 Try:\n- Jobs in Aden\n- Which jobs suit me?\n- What do accountants earn?\n- How do I upload my CV?\n- How do I verify my company?');
 }
 
-/* ---------- تحويل نص المساعد إلى HTML آمن ---------- */
-function md(t){
- let h=esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[\[job:(\d+)\]\]/g,(m,id)=>{const j=job(+id);return j?`<a class="jl" data-a="open" data-v="${id}">↗ ${esc(j.title)}</a>`:''});
- const lines=h.split('\n');let out='',ul=false;
- for(const l of lines){const m=l.match(/^\s*[-•]\s+(.*)/);
-  if(m){if(!ul){out+='<ul>';ul=true}out+=`<li>${m[1]}</li>`}else{if(ul){out+='</ul>';ul=false}out+=l.trim()?`<div>${l}</div>`:'<div style="height:6px"></div>'}}
- if(ul)out+='</ul>';return out;
+/* ---------- نص المساعد إلى HTML آمن ---------- */
+function md(t) {
+  let h = esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\[\[job:([\w-]+)\]\]/g, (m, id) => { const j = job(id); return j ? `<a class="jl" data-a="open" data-v="${esc(id)}">↗ ${esc(j.title)}</a>` : ''; });
+  const lines = h.split('\n'); let out = '', ul = false;
+  for (const l of lines) { const m = l.match(/^\s*[-•]\s+(.*)/); if (m) { if (!ul) { out += '<ul>'; ul = true; } out += `<li>${m[1]}</li>`; } else { if (ul) { out += '</ul>'; ul = false; } out += l.trim() ? `<div>${l}</div>` : '<div style="height:6px"></div>'; } }
+  if (ul) out += '</ul>'; return out;
 }

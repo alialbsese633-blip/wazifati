@@ -1,9 +1,16 @@
-/* إعدادات وظيفتي
-   aiEndpoint: رابط دالة الذكاء الاصطناعي على Supabase بعد نشرها، مثال:
-   https://YOUR-PROJECT.supabase.co/functions/v1/ai-assistant
-   اتركه فارغاً ليعمل المساعد بالوضع الذكي المحلي. */
-window.WAZIFATI_CONFIG={
-  aiEndpoint:'',
-  supabaseUrl:'',
-  supabaseAnonKey:''
+/* =====================================================
+   إعدادات وظيفتي
+   اترك supabaseUrl فارغاً ليعمل التطبيق بالوضع التجريبي (بيانات أمثلة على الجهاز).
+   عند تعبئته يعمل بالوضع الحقيقي: دخول Google/جوال، قاعدة بيانات، ذكاء اصطناعي حقيقي.
+   مفتاح anon عام بطبيعته وآمن في الواجهة؛ لا تضع هنا أي مفتاح سري.
+   ===================================================== */
+window.WAZIFATI_CONFIG = {
+  supabaseUrl: '',            // مثال: https://abcd1234.supabase.co
+  supabaseAnonKey: '',        // Project Settings ← API ← anon public
+  googleLogin: true,          // الدخول بحساب Google
+  phoneLogin: false,          // الدخول برقم الجوال (يحتاج مزوّد رسائل SMS في Supabase)
+  pushEnabled: false,         // إشعارات الجوال (بعد إضافة Firebase)
+  nativeScheme: 'com.wazifati.app',
+  webUrl: 'https://alialbsese633-blip.github.io/wazifati/',
+  supportEmail: ''            // بريد الدعم الذي يظهر في سياسة الخصوصية
 };
