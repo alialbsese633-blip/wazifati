@@ -632,6 +632,8 @@ function afterAuth() {
   Native.init({ onDeepLink: url => { if (REAL && url.includes('auth')) Store.handleDeepLink(url); const m = url.match(/[?&]job=([\w-]+)/); if (m) openJob(m[1]); }, onBack: () => { if ($('#layer').innerHTML) { closeModal(); return true; } if (S.chatOpen) { S.chatOpen = false; chatPanel(); return true; } return back(); } });
   S.view = HOME[role()];
   const qj = new URLSearchParams(location.search).get('job');
+  const ql = new URLSearchParams(location.search).get('legal');
+  if (ql === 'privacy' || ql === 'terms') { S.legal = ql; S.view = 'legal'; }
   render();
   if (qj && job(qj)) openJob(qj);
   if (!REAL && !D.welcomed) welcome();
