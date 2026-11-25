@@ -89,6 +89,29 @@ footer img{height:30px}footer .sp{flex:1}
 footer a:hover{color:#fff}
 [lang=en]{direction:ltr}
 @media(max-width:860px){.hero .wrap{grid-template-columns:1fr;padding-top:44px}.phone{transform:none;margin-top:20px}.two{grid-template-columns:1fr}nav a.l{display:none}}
+
+/* jobs board */
+.jb{background:#fff;border-radius:22px;border:1px solid #ece8f7;margin-top:26px;overflow:hidden}
+.jb-top{display:flex;gap:10px;flex-wrap:wrap;padding:16px;border-bottom:1px solid #ece8f7;background:#fbfaff}
+.jb-top input,.jb-top select{font-family:inherit;font-size:15px;padding:10px 14px;border:1px solid #ddd6f3;border-radius:12px;background:#fff;color:var(--ink)}
+.jb-top input{flex:1;min-width:180px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid #ece8f7}
+.chip{border:1px solid #ddd6f3;background:#fff;border-radius:99px;padding:5px 14px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;color:var(--ink)}
+.chip b{color:var(--indigo);margin-inline-start:6px}
+.chip.on{background:var(--night);color:#fff;border-color:var(--night)}.chip.on b{color:var(--lime)}
+.jr{display:grid;grid-template-columns:1fr auto;gap:6px 14px;padding:14px 18px;border-bottom:1px solid #f1eef9;align-items:center}
+.jr:hover{background:#faf8ff}
+.jr h3{font-size:17px;font-weight:700}
+.jr small{color:#6d6690;font-size:13.5px}
+.jr .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.jr .go{background:var(--night);color:#fff;border-radius:10px;padding:8px 16px;font-weight:700;font-size:14px;white-space:nowrap}
+.new{background:var(--coral);color:#fff;border-radius:6px;padding:0 7px;font-size:11px;font-weight:800;margin-inline-start:6px}
+.ver{color:#1d8a46;font-weight:700}
+.jb-empty{padding:34px;text-align:center;color:#6d6690}
+.jb-foot{padding:16px;text-align:center;background:#fbfaff}
+.locs{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.emp{background:linear-gradient(120deg,var(--indigo),#3b2487);color:#fff;border-radius:24px;padding:34px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:26px}
+.emp h3{font-size:24px;flex:1;min-width:240px}.emp p{color:#d9d3ee;font-size:15px;margin-top:6px;font-weight:400}
 </style>
 </head>
 <body>
@@ -97,6 +120,7 @@ footer a:hover{color:#fff}
   <span class="sp"></span>
   <a class="l" href="#features" data-i="n1">المميزات</a>
   <a class="l" href="#how" data-i="n2">كيف يعمل</a>
+  <a class="l" href="#jobs" data-i="nj">الوظائف</a>
   <a class="l" href="#faq" data-i="n3">أسئلة</a>
   <button class="lang" id="lang">EN</button>
   <a class="btn lime" href="../" data-i="open">افتح التطبيق</a>
@@ -121,6 +145,19 @@ footer a:hover{color:#fff}
     <div class="card"><b>✦ سند</b><small>أبغى وظيفة محاسب في عدن بالدولار</small></div>
   </div></div>
 </div></header>
+
+<section id="jobs"><div class="wrap">
+  <h2 data-i="jh">أحدث الوظائف</h2>
+  <p class="sub" data-i="jsub">وظائف من شركات موثّقة، تتحدّث مباشرة من المنصة.</p>
+  <div class="jb">
+    <div class="jb-top"><input id="q" type="search" placeholder="ابحث بالمسمّى أو الشركة…"><select id="loc"><option value="">كل المدن</option></select><select id="typ"><option value="">كل أنواع الدوام</option></select></div>
+    <div class="chips" id="chips"></div>
+    <div id="rows"><div class="jb-empty">جارٍ التحميل…</div></div>
+    <div class="jb-foot"><a class="btn dark" href="../" data-i="jall">شاهد كل الوظائف في التطبيق</a></div>
+  </div>
+  <div class="locs" id="locs"></div>
+  <div class="emp"><div><h3 data-i="eh">هل تبحث عن موظفين؟</h3><p data-i="ep">سجّل شركتك، وثّق سجلّك التجاري، وانشر وظائفك ليصل لها المرشّحون المناسبون مع نسبة مطابقة لكل متقدّم.</p></div><a class="btn lime" href="../" data-i="ebtn">انشر وظيفة</a></div>
+</div></section>
 
 <section id="features"><div class="wrap">
   <h2 data-i="fh">كل ما تحتاجه للتوظيف في مكان واحد</h2>
@@ -201,10 +238,47 @@ footer a:hover{color:#fff}
 </div></footer>
 
 <script>
-const EN={n1:'Features',n2:'How it works',n3:'FAQ',open:'Open the app',pill:'🇾🇪 Launching first in Yemen',h1:'Your next job, <em>the smart way</em>',lead:'Jobs from verified companies, an AI assistant called “Sanad” that searches for you and prepares your CV and interview, and an instant alert when a job fits you.',dl:'⬇ Download for Android',web:'Try it on the web',note:'Early preview. Your phone may ask permission to install from outside the store.',fh:'Everything hiring needs, in one place',fs:'Wazifati makes finding a job — or the right hire — simpler, faster and safer.',f1t:'Sanad, your career assistant',f1p:'Answers your questions, suggests jobs, writes your cover letter and coaches your interview.',f2t:'Upload your CV (PDF)',f2p:'The assistant reads it and fills your profile; you review before saving.',f3t:'Matching-job alerts',f3p:'Tap the alert to open the job and apply in one tap.',f4t:'Verified companies',f4p:'We review the commercial registration before a company can post.',f5t:'In-app chat',f5p:'Talk to the employer directly without sharing your number.',f6t:'Interview scheduling',f6p:'The company proposes three slots and you pick one in a tap.',f7t:'Company ratings',f7p:'See real reviews and the company response rate before you apply.',f8t:'Exclusive CV templates',f8p:'Four Yemeni-inspired templates, exported as ready PDFs.',hh:'Just three steps',hs:'From sign-up to your first application in minutes.',s1t:'Sign in with Google',s1p:'Choose whether you are a job seeker or an employer.',s2t:'Complete your profile',s2p:'Upload your CV and the assistant fills it in, or build it yourself.',s3t:'Apply and follow up',s3p:'Apply in a tap and track your status, messages and interviews.',wh:'What each side gets',w1t:'For job seekers',w1a:'Jobs matched to your skills and city, with a match score',w1b:'Instant alerts with a direct apply link',w1c:'AI cover letter and interview prep',w1d:'Daily-paid gig work',w2t:'For employers',w2a:'Register with your commercial registration and get the verified badge',w2b:'Post jobs with ready templates',w2c:'Rank applicants by match, message them and schedule interviews',w2d:'Build a reputation with ratings and response rate',ch:'CV templates with Yemeni identity',cs:'Pick a template and export your CV as an elegant PDF.',qh:'FAQ',q1:'Is Wazifati free?',a1:'Yes. Sign-up and applying are free for job seekers at this stage.',q2:'How do I know a company is real?',a2:'A company cannot post before we review its commercial registration number and document. Reviewed companies carry a “Verified” badge.',q3:'Is my data safe?',a3:'We use a database with per-user access rules, CVs and documents are stored privately, and you can delete your account from Settings.',q4:'Which devices are supported?',a4:'Android as an app, and any browser on the web. iPhone is on our roadmap.',q5:'Is the app available in English?',a5:'Yes, Arabic and English, switchable any time.',fh2:'Start your journey today',fp:'Join the first users and help us build the best job platform in Yemen.',pv:'Privacy Policy',tm:'Terms of Use'};
+const EN={nj:'Jobs',jh:'Latest jobs',jsub:'Jobs from verified companies, updated live from the platform.',jall:'See all jobs in the app',eh:'Hiring?',ep:'Register your company, verify your commercial record and post jobs. Every applicant comes with a match score.',ebtn:'Post a job',n1:'Features',n2:'How it works',n3:'FAQ',open:'Open the app',pill:'🇾🇪 Launching first in Yemen',h1:'Your next job, <em>the smart way</em>',lead:'Jobs from verified companies, an AI assistant called “Sanad” that searches for you and prepares your CV and interview, and an instant alert when a job fits you.',dl:'⬇ Download for Android',web:'Try it on the web',note:'Early preview. Your phone may ask permission to install from outside the store.',fh:'Everything hiring needs, in one place',fs:'Wazifati makes finding a job — or the right hire — simpler, faster and safer.',f1t:'Sanad, your career assistant',f1p:'Answers your questions, suggests jobs, writes your cover letter and coaches your interview.',f2t:'Upload your CV (PDF)',f2p:'The assistant reads it and fills your profile; you review before saving.',f3t:'Matching-job alerts',f3p:'Tap the alert to open the job and apply in one tap.',f4t:'Verified companies',f4p:'We review the commercial registration before a company can post.',f5t:'In-app chat',f5p:'Talk to the employer directly without sharing your number.',f6t:'Interview scheduling',f6p:'The company proposes three slots and you pick one in a tap.',f7t:'Company ratings',f7p:'See real reviews and the company response rate before you apply.',f8t:'Exclusive CV templates',f8p:'Four Yemeni-inspired templates, exported as ready PDFs.',hh:'Just three steps',hs:'From sign-up to your first application in minutes.',s1t:'Sign in with Google',s1p:'Choose whether you are a job seeker or an employer.',s2t:'Complete your profile',s2p:'Upload your CV and the assistant fills it in, or build it yourself.',s3t:'Apply and follow up',s3p:'Apply in a tap and track your status, messages and interviews.',wh:'What each side gets',w1t:'For job seekers',w1a:'Jobs matched to your skills and city, with a match score',w1b:'Instant alerts with a direct apply link',w1c:'AI cover letter and interview prep',w1d:'Daily-paid gig work',w2t:'For employers',w2a:'Register with your commercial registration and get the verified badge',w2b:'Post jobs with ready templates',w2c:'Rank applicants by match, message them and schedule interviews',w2d:'Build a reputation with ratings and response rate',ch:'CV templates with Yemeni identity',cs:'Pick a template and export your CV as an elegant PDF.',qh:'FAQ',q1:'Is Wazifati free?',a1:'Yes. Sign-up and applying are free for job seekers at this stage.',q2:'How do I know a company is real?',a2:'A company cannot post before we review its commercial registration number and document. Reviewed companies carry a “Verified” badge.',q3:'Is my data safe?',a3:'We use a database with per-user access rules, CVs and documents are stored privately, and you can delete your account from Settings.',q4:'Which devices are supported?',a4:'Android as an app, and any browser on the web. iPhone is on our roadmap.',q5:'Is the app available in English?',a5:'Yes, Arabic and English, switchable any time.',fh2:'Start your journey today',fp:'Join the first users and help us build the best job platform in Yemen.',pv:'Privacy Policy',tm:'Terms of Use'};
 const AR={};document.querySelectorAll('[data-i]').forEach(e=>AR[e.dataset.i]=AR[e.dataset.i]||e.innerHTML);
 let en=false;
 document.getElementById('lang').onclick=function(){en=!en;document.documentElement.lang=en?'en':'ar';document.documentElement.dir=en?'ltr':'rtl';this.textContent=en?'ع':'EN';document.querySelectorAll('[data-i]').forEach(e=>{e.innerHTML=en?(EN[e.dataset.i]||AR[e.dataset.i]):AR[e.dataset.i]});document.title=en?'Wazifati — Your next job, the smart way':'وظيفتي — وظيفتك القادمة، بذكاء'};
+</script>
+<script>
+/* ---- live jobs ---- */
+(function(){
+const SB='https://smjqwojvzdayhxmcigay.supabase.co',KEY='sb_publishable_UMz1QuJaIQU2ZdTSXbczVQ_GFyTZ-1v';
+const CATS={accounting:['محاسبة ومالية','Accounting & Finance'],admin:['إدارة وسكرتارية','Administration'],sales:['مبيعات وتسويق','Sales & Marketing'],hospitality:['فنادق ومطاعم','Hospitality'],engineering:['هندسة وفنيون','Engineering'],it:['تقنية معلومات','IT & Software'],education:['تعليم وتدريب','Education'],health:['صحة وتمريض','Healthcare'],ngo:['منظمات وتنمية','NGOs'],transport:['نقل وتوصيل','Transport'],support:['خدمة عملاء','Customer Service'],gigs:['أعمال مؤقتة','Gigs']};
+const LOCS={sanaa:['صنعاء',"Sana'a"],aden:['عدن','Aden'],taiz:['تعز','Taiz'],hodeidah:['الحديدة','Hodeidah'],ibb:['إب','Ibb'],mukalla:['المكلا','Mukalla'],seiyun:['سيئون','Seiyun'],dhamar:['ذمار','Dhamar'],marib:['مأرب','Marib'],ataq:['عتق','Ataq'],ghaydah:['الغيضة','Al Ghaydah'],lahj:['لحج','Lahj'],abyan:['أبين','Abyan'],bayda:['البيضاء','Al Bayda'],hajjah:['حجة','Hajjah'],saada:['صعدة',"Sa'dah"],amran:['عمران','Amran'],dhale:['الضالع',"Ad Dali'"],socotra:['سقطرى','Socotra'],remote:['عن بعد','Remote']};
+const TYPES={full_time:['دوام كامل','Full-time'],part_time:['دوام جزئي','Part-time'],contract:['عقد مؤقت','Contract'],internship:['تدريب','Internship']};
+const $=id=>document.getElementById(id);
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const L=m=>m?m[en?1:0]:'';
+let jobs=[],cat='',sample=false;
+const SAMPLE=[['محاسب أول','accounting','aden','full_time','شركة الريان للضيافة'],['مندوب مبيعات ميداني','sales','sanaa','full_time','مجموعة الصفوة التجارية'],['مهندس شبكات','it','sanaa','contract','حلول التقنية'],['ممرضة','health','taiz','full_time','مستشفى الأمل'],['مسؤول موارد بشرية','admin','mukalla','full_time','شركة حضرموت'],['موظف خدمة عملاء','support','remote','part_time','نمو أون لاين']].map((a,i)=>({id:'s'+i,title:a[0],category:a[1],location:a[2],job_type:a[3],salary_min:null,salary_max:null,currency:'YER',published_at:new Date().toISOString(),companies:{name:a[4],status:'verified'}}));
+function sal(j){if(!j.salary_min&&!j.salary_max)return '';const c={YER:'ر.ي',USD:'$',SAR:'ر.س'}[j.currency]||'';const f=n=>Number(n).toLocaleString('en');return (j.salary_min&&j.salary_max?f(j.salary_min)+' – '+f(j.salary_max):f(j.salary_min||j.salary_max))+' '+c}
+function ago(d){const h=(Date.now()-new Date(d))/36e5;return h<72}
+function fill(){
+  const lc={},cc={};jobs.forEach(j=>{lc[j.location]=(lc[j.location]||0)+1;cc[j.category]=(cc[j.category]||0)+1});
+  $('chips').innerHTML='<button class="chip'+(cat?'':' on')+'" data-c="">'+(en?'All':'الكل')+'<b>'+jobs.length+'</b></button>'+Object.keys(cc).map(k=>'<button class="chip'+(cat===k?' on':'')+'" data-c="'+esc(k)+'">'+esc(L(CATS[k])||k)+'<b>'+cc[k]+'</b></button>').join('');
+  const ls=$('loc'),cur=ls.value;ls.innerHTML='<option value="">'+(en?'All cities':'كل المدن')+'</option>'+Object.keys(lc).map(k=>'<option value="'+esc(k)+'">'+esc(L(LOCS[k])||k)+' ('+lc[k]+')</option>').join('');ls.value=cur;
+  const ts=$('typ'),ct=ts.value;ts.innerHTML='<option value="">'+(en?'All job types':'كل أنواع الدوام')+'</option>'+Object.keys(TYPES).map(k=>'<option value="'+k+'">'+L(TYPES[k])+'</option>').join('');ts.value=ct;
+  $('locs').innerHTML=Object.keys(lc).map(k=>'<button class="chip" data-l="'+esc(k)+'">'+esc(L(LOCS[k])||k)+'<b>'+lc[k]+'</b></button>').join('');
+  $('q').placeholder=en?'Search title or company…':'ابحث بالمسمّى أو الشركة…';
+  rows();
+}
+function rows(){
+  const q=$('q').value.trim().toLowerCase(),l=$('loc').value,t=$('typ').value;
+  const r=jobs.filter(j=>(!cat||j.category===cat)&&(!l||j.location===l)&&(!t||j.job_type===t)&&(!q||(j.title+' '+(j.companies&&j.companies.name||'')).toLowerCase().includes(q)));
+  $('rows').innerHTML=(sample?'<div class="jb-empty" style="padding:10px;background:#fff8e1;color:#7a5b00;font-size:13px">'+(en?'Sample listings — real jobs appear here as employers publish them.':'أمثلة توضيحية — ستظهر هنا الوظائف الحقيقية فور نشرها.')+'</div>':'')+
+  (r.length?r.slice(0,30).map(j=>{const co=j.companies||{};const s=sal(j);return '<div class="jr"><div><h3>'+esc(j.title)+(ago(j.published_at)?'<span class="new">'+(en?'NEW':'جديد')+'</span>':'')+'</h3><small>'+esc(co.name||'')+(co.status==='verified'?' <span class="ver">✓ '+(en?'Verified':'موثّقة')+'</span>':'')+' · '+esc(L(LOCS[j.location])||j.location)+'</small><div class="meta"><span class="tag">'+esc(L(TYPES[j.job_type])||'')+'</span><span class="tag">'+esc(L(CATS[j.category])||'')+'</span>'+(s?'<span class="tag g">'+esc(s)+'</span>':'')+'</div></div><a class="go" href="../">'+(en?'View':'التفاصيل')+'</a></div>'}).join(''):'<div class="jb-empty">'+(en?'No jobs match your search.':'لا توجد وظائف مطابقة.')+'</div>');
+}
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;fill()};
+$('locs').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;$('loc').value=b.dataset.l;rows();$('jobs').scrollIntoView()};
+['q','loc','typ'].forEach(i=>$(i).addEventListener('input',rows));
+window.__jobsRefresh=fill;document.getElementById('lang').addEventListener('click',fill);
+fetch(SB+'/rest/v1/jobs?select=id,title,category,location,job_type,salary_min,salary_max,currency,published_at,companies(name,status)&status=eq.active&order=published_at.desc&limit=100',{headers:{apikey:KEY,Authorization:'Bearer '+KEY}})
+ .then(r=>r.ok?r.json():Promise.reject()).then(d=>{if(Array.isArray(d)&&d.length){jobs=d}else{jobs=SAMPLE;sample=true}fill()}).catch(()=>{jobs=SAMPLE;sample=true;fill()});
+})();
 </script>
 </body>
 </html>
