@@ -112,9 +112,67 @@ footer a:hover{color:#fff}
 .locs{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
 .emp{background:linear-gradient(120deg,var(--indigo),#3b2487);color:#fff;border-radius:24px;padding:34px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:26px}
 .emp h3{font-size:24px;flex:1;min-width:240px}.emp p{color:#d9d3ee;font-size:15px;margin-top:6px;font-weight:400}
-</style>
+
+/* ===== motion ===== */
+#prog{position:fixed;top:0;inset-inline-start:0;height:3px;width:0;background:linear-gradient(90deg,var(--lime),var(--mint),var(--indigo));z-index:50}
+nav{transition:height .3s,background .3s}nav .wrap{transition:height .3s}
+nav.sc .wrap{height:54px}nav.sc{background:rgba(27,16,53,.98);box-shadow:0 6px 30px rgba(0,0,0,.25)}
+.hero{position:relative;isolation:isolate}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(70px);z-index:-1;opacity:.55}
+.hero::before{width:420px;height:420px;background:#5B3DF5;top:-120px;inset-inline-end:-60px;animation:blob 14s ease-in-out infinite alternate}
+.hero::after{width:360px;height:360px;background:#C8F135;opacity:.16;bottom:-140px;inset-inline-start:8%;animation:blob 18s ease-in-out infinite alternate-reverse}
+@keyframes blob{to{transform:translate(-60px,50px) scale(1.25)}}
+.gridbg{position:absolute;inset:0;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:46px 46px;-webkit-mask-image:radial-gradient(ellipse at 60% 40%,#000 20%,transparent 70%);mask-image:radial-gradient(ellipse at 60% 40%,#000 20%,transparent 70%)}
+#glow{position:absolute;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(200,241,53,.18),transparent 65%);pointer-events:none;z-index:-1;transform:translate(-50%,-50%);left:70%;top:40%;transition:left .25s,top .25s}
+h1 em{background:linear-gradient(100deg,var(--lime) 30%,#fff 50%,var(--lime) 70%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shim 4s linear infinite}
+@keyframes shim{to{background-position:-220% 0}}
+.hero .pill,.hero h1,.hero p.lead,.hero .cta,.hero .note{opacity:0;transform:translateY(26px);animation:up .9s cubic-bezier(.2,.8,.2,1) forwards}
+.hero h1{animation-delay:.12s}.hero p.lead{animation-delay:.28s}.hero .cta{animation-delay:.44s}.hero .note{animation-delay:.6s}
+@keyframes up{to{opacity:1;transform:none}}
+.phone{animation:fl 6s ease-in-out infinite,pin 1s cubic-bezier(.2,.8,.2,1) both;transform-origin:50% 60%}
+@keyframes fl{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(-1deg) translateY(-18px)}}
+@keyframes pin{from{opacity:0;margin-top:60px}}
+.screen .push{animation:drop 6s ease-in-out infinite}
+@keyframes drop{0%,8%{transform:translateY(-90px);opacity:0}16%,88%{transform:none;opacity:1}100%{transform:translateY(-90px);opacity:0}}
+.screen .card{animation:pop .7s cubic-bezier(.2,.8,.2,1) both}
+.screen .card:nth-of-type(1){animation-delay:.9s}.screen .card:nth-of-type(2){animation-delay:1.15s}.screen .card:nth-of-type(3){animation-delay:1.4s}
+@keyframes pop{from{opacity:0;transform:translateX(30px) scale(.94)}}
+.match{animation:mp 2.4s ease-in-out infinite}@keyframes mp{50%{box-shadow:0 0 0 6px rgba(200,241,53,.35)}}
+.btn{position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.btn:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 12px 28px rgba(91,61,245,.35)}
+.btn.lime{animation:bp 2.6s ease-in-out infinite}@keyframes bp{50%{box-shadow:0 0 0 9px rgba(200,241,53,.18)}}
+.btn::after{content:"";position:absolute;top:0;bottom:0;width:60%;inset-inline-start:-80%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg)}
+.btn:hover::after{inset-inline-start:130%;transition:inset-inline-start .7s}
+.mq{background:var(--lime);color:var(--night);overflow:hidden;white-space:nowrap;padding:14px 0;transform:rotate(-1.2deg);margin:-14px -10px 0;position:relative;z-index:3;font-weight:800;font-size:18px}
+.mq div{display:inline-block;animation:mq 28s linear infinite}
+.mq span{margin:0 18px}.mq i{font-style:normal;opacity:.5}
+@keyframes mq{to{transform:translateX(50%)}}
+html[dir=ltr] .mq div{animation-name:mql}@keyframes mql{to{transform:translateX(-50%)}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:40px}
+.stat{background:#fff;border:1px solid #ece8f7;border-radius:22px;padding:22px;text-align:center}
+.stat b{display:block;font-size:44px;font-weight:800;color:var(--indigo);line-height:1.1}
+.stat span{color:#5c5480;font-weight:500}
+.rv{opacity:0;transform:translateY(34px) scale(.98);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0s)}
+.rv.in{opacity:1;transform:none}
+.feat,.stat,.jr{position:relative}
+.feat{transition:transform .3s,box-shadow .3s,border-color .3s}
+.feat::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(91,61,245,.14),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.feat:hover{transform:translateY(-8px);border-color:var(--indigo);box-shadow:0 22px 50px rgba(91,61,245,.18)}
+.feat:hover::before{opacity:1}
+.feat i{display:inline-block;transition:transform .4s}.feat:hover i{transform:rotate(-12deg) scale(1.25)}
+.jr{animation:rowin .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--n,0)*70ms);transition:background .2s,padding .25s}
+.jr:hover{padding-inline-start:26px}
+@keyframes rowin{from{opacity:0;transform:translateX(-26px)}}
+.jr .go{transition:transform .25s,background .25s}.jr:hover .go{background:var(--indigo);transform:translateX(-6px)}
+.chip{transition:transform .2s,background .2s,color .2s}.chip:hover{transform:translateY(-3px);background:#efe9ff}.chip.on:hover{background:var(--night)}
+.new{animation:np 1.6s ease-in-out infinite}@keyframes np{50%{transform:scale(1.18)}}
+.final,.emp{background-size:200% 200%;animation:gs 9s ease infinite}@keyframes gs{50%{background-position:100% 50%}}
+details{transition:box-shadow .3s,transform .3s}details:hover{transform:translateX(-4px)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv,.hero .pill,.hero h1,.hero p.lead,.hero .cta,.hero .note{opacity:1!important;transform:none!important}}
+html,body{overflow-x:clip}.mq{margin:-14px -30px 0}</style>
 </head>
 <body>
+<div id="prog"></div>
 <nav><div class="wrap">
   <a href="#top"><img src="../assets/brand/logo-horizontal-white.svg" alt="وظيفتي"></a>
   <span class="sp"></span>
@@ -126,7 +184,7 @@ footer a:hover{color:#fff}
   <a class="btn lime" href="../" data-i="open">افتح التطبيق</a>
 </div></nav>
 
-<header class="hero" id="top"><div class="wrap">
+<header class="hero" id="top"><div class="gridbg"></div><div id="glow"></div><div class="wrap">
   <div>
     <span class="pill" data-i="pill">🇾🇪 تنطلق أولاً في اليمن</span>
     <h1 data-i="h1">وظيفتك القادمة، <em>بذكاء</em></h1>
@@ -145,6 +203,8 @@ footer a:hover{color:#fff}
     <div class="card"><b>✦ سند</b><small>أبغى وظيفة محاسب في عدن بالدولار</small></div>
   </div></div>
 </div></header>
+<div class="mq" aria-hidden="true"><div id="mqin"></div></div>
+
 
 <section id="jobs"><div class="wrap">
   <h2 data-i="jh">أحدث الوظائف</h2>
@@ -154,6 +214,12 @@ footer a:hover{color:#fff}
     <div class="chips" id="chips"></div>
     <div id="rows"><div class="jb-empty">جارٍ التحميل…</div></div>
     <div class="jb-foot"><a class="btn dark" href="../" data-i="jall">شاهد كل الوظائف في التطبيق</a></div>
+  </div>
+  <div class="stats">
+    <div class="stat rv"><b data-n="20">0</b><span data-i="s1">مدينة ومنطقة</span></div>
+    <div class="stat rv"><b data-n="12">0</b><span data-i="s2">تصنيف وظيفي</span></div>
+    <div class="stat rv"><b data-n="4">0</b><span data-i="s3">قوالب سيرة احترافية</span></div>
+    <div class="stat rv"><b data-n="100">0</b><span data-i="s4">% شركات موثّقة السجل</span></div>
   </div>
   <div class="locs" id="locs"></div>
   <div class="emp"><div><h3 data-i="eh">هل تبحث عن موظفين؟</h3><p data-i="ep">سجّل شركتك، وثّق سجلّك التجاري، وانشر وظائفك ليصل لها المرشّحون المناسبون مع نسبة مطابقة لكل متقدّم.</p></div><a class="btn lime" href="../" data-i="ebtn">انشر وظيفة</a></div>
@@ -238,7 +304,7 @@ footer a:hover{color:#fff}
 </div></footer>
 
 <script>
-const EN={nj:'Jobs',jh:'Latest jobs',jsub:'Jobs from verified companies, updated live from the platform.',jall:'See all jobs in the app',eh:'Hiring?',ep:'Register your company, verify your commercial record and post jobs. Every applicant comes with a match score.',ebtn:'Post a job',n1:'Features',n2:'How it works',n3:'FAQ',open:'Open the app',pill:'🇾🇪 Launching first in Yemen',h1:'Your next job, <em>the smart way</em>',lead:'Jobs from verified companies, an AI assistant called “Sanad” that searches for you and prepares your CV and interview, and an instant alert when a job fits you.',dl:'⬇ Download for Android',web:'Try it on the web',note:'Early preview. Your phone may ask permission to install from outside the store.',fh:'Everything hiring needs, in one place',fs:'Wazifati makes finding a job — or the right hire — simpler, faster and safer.',f1t:'Sanad, your career assistant',f1p:'Answers your questions, suggests jobs, writes your cover letter and coaches your interview.',f2t:'Upload your CV (PDF)',f2p:'The assistant reads it and fills your profile; you review before saving.',f3t:'Matching-job alerts',f3p:'Tap the alert to open the job and apply in one tap.',f4t:'Verified companies',f4p:'We review the commercial registration before a company can post.',f5t:'In-app chat',f5p:'Talk to the employer directly without sharing your number.',f6t:'Interview scheduling',f6p:'The company proposes three slots and you pick one in a tap.',f7t:'Company ratings',f7p:'See real reviews and the company response rate before you apply.',f8t:'Exclusive CV templates',f8p:'Four Yemeni-inspired templates, exported as ready PDFs.',hh:'Just three steps',hs:'From sign-up to your first application in minutes.',s1t:'Sign in with Google',s1p:'Choose whether you are a job seeker or an employer.',s2t:'Complete your profile',s2p:'Upload your CV and the assistant fills it in, or build it yourself.',s3t:'Apply and follow up',s3p:'Apply in a tap and track your status, messages and interviews.',wh:'What each side gets',w1t:'For job seekers',w1a:'Jobs matched to your skills and city, with a match score',w1b:'Instant alerts with a direct apply link',w1c:'AI cover letter and interview prep',w1d:'Daily-paid gig work',w2t:'For employers',w2a:'Register with your commercial registration and get the verified badge',w2b:'Post jobs with ready templates',w2c:'Rank applicants by match, message them and schedule interviews',w2d:'Build a reputation with ratings and response rate',ch:'CV templates with Yemeni identity',cs:'Pick a template and export your CV as an elegant PDF.',qh:'FAQ',q1:'Is Wazifati free?',a1:'Yes. Sign-up and applying are free for job seekers at this stage.',q2:'How do I know a company is real?',a2:'A company cannot post before we review its commercial registration number and document. Reviewed companies carry a “Verified” badge.',q3:'Is my data safe?',a3:'We use a database with per-user access rules, CVs and documents are stored privately, and you can delete your account from Settings.',q4:'Which devices are supported?',a4:'Android as an app, and any browser on the web. iPhone is on our roadmap.',q5:'Is the app available in English?',a5:'Yes, Arabic and English, switchable any time.',fh2:'Start your journey today',fp:'Join the first users and help us build the best job platform in Yemen.',pv:'Privacy Policy',tm:'Terms of Use'};
+const EN={s1:'Cities & regions',s2:'Job categories',s3:'Pro CV templates',s4:'% verified-record companies',nj:'Jobs',jh:'Latest jobs',jsub:'Jobs from verified companies, updated live from the platform.',jall:'See all jobs in the app',eh:'Hiring?',ep:'Register your company, verify your commercial record and post jobs. Every applicant comes with a match score.',ebtn:'Post a job',n1:'Features',n2:'How it works',n3:'FAQ',open:'Open the app',pill:'🇾🇪 Launching first in Yemen',h1:'Your next job, <em>the smart way</em>',lead:'Jobs from verified companies, an AI assistant called “Sanad” that searches for you and prepares your CV and interview, and an instant alert when a job fits you.',dl:'⬇ Download for Android',web:'Try it on the web',note:'Early preview. Your phone may ask permission to install from outside the store.',fh:'Everything hiring needs, in one place',fs:'Wazifati makes finding a job — or the right hire — simpler, faster and safer.',f1t:'Sanad, your career assistant',f1p:'Answers your questions, suggests jobs, writes your cover letter and coaches your interview.',f2t:'Upload your CV (PDF)',f2p:'The assistant reads it and fills your profile; you review before saving.',f3t:'Matching-job alerts',f3p:'Tap the alert to open the job and apply in one tap.',f4t:'Verified companies',f4p:'We review the commercial registration before a company can post.',f5t:'In-app chat',f5p:'Talk to the employer directly without sharing your number.',f6t:'Interview scheduling',f6p:'The company proposes three slots and you pick one in a tap.',f7t:'Company ratings',f7p:'See real reviews and the company response rate before you apply.',f8t:'Exclusive CV templates',f8p:'Four Yemeni-inspired templates, exported as ready PDFs.',hh:'Just three steps',hs:'From sign-up to your first application in minutes.',s1t:'Sign in with Google',s1p:'Choose whether you are a job seeker or an employer.',s2t:'Complete your profile',s2p:'Upload your CV and the assistant fills it in, or build it yourself.',s3t:'Apply and follow up',s3p:'Apply in a tap and track your status, messages and interviews.',wh:'What each side gets',w1t:'For job seekers',w1a:'Jobs matched to your skills and city, with a match score',w1b:'Instant alerts with a direct apply link',w1c:'AI cover letter and interview prep',w1d:'Daily-paid gig work',w2t:'For employers',w2a:'Register with your commercial registration and get the verified badge',w2b:'Post jobs with ready templates',w2c:'Rank applicants by match, message them and schedule interviews',w2d:'Build a reputation with ratings and response rate',ch:'CV templates with Yemeni identity',cs:'Pick a template and export your CV as an elegant PDF.',qh:'FAQ',q1:'Is Wazifati free?',a1:'Yes. Sign-up and applying are free for job seekers at this stage.',q2:'How do I know a company is real?',a2:'A company cannot post before we review its commercial registration number and document. Reviewed companies carry a “Verified” badge.',q3:'Is my data safe?',a3:'We use a database with per-user access rules, CVs and documents are stored privately, and you can delete your account from Settings.',q4:'Which devices are supported?',a4:'Android as an app, and any browser on the web. iPhone is on our roadmap.',q5:'Is the app available in English?',a5:'Yes, Arabic and English, switchable any time.',fh2:'Start your journey today',fp:'Join the first users and help us build the best job platform in Yemen.',pv:'Privacy Policy',tm:'Terms of Use'};
 const AR={};document.querySelectorAll('[data-i]').forEach(e=>AR[e.dataset.i]=AR[e.dataset.i]||e.innerHTML);
 let en=false;
 document.getElementById('lang').onclick=function(){en=!en;document.documentElement.lang=en?'en':'ar';document.documentElement.dir=en?'ltr':'rtl';this.textContent=en?'ع':'EN';document.querySelectorAll('[data-i]').forEach(e=>{e.innerHTML=en?(EN[e.dataset.i]||AR[e.dataset.i]):AR[e.dataset.i]});document.title=en?'Wazifati — Your next job, the smart way':'وظيفتي — وظيفتك القادمة، بذكاء'};
@@ -278,6 +344,35 @@ $('locs').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;$('loc').va
 window.__jobsRefresh=fill;document.getElementById('lang').addEventListener('click',fill);
 fetch(SB+'/rest/v1/jobs?select=id,title,category,location,job_type,salary_min,salary_max,currency,published_at,companies(name,status)&status=eq.active&order=published_at.desc&limit=100',{headers:{apikey:KEY,Authorization:'Bearer '+KEY}})
  .then(r=>r.ok?r.json():Promise.reject()).then(d=>{if(Array.isArray(d)&&d.length){jobs=d}else{jobs=SAMPLE;sample=true}fill()}).catch(()=>{jobs=SAMPLE;sample=true;fill()});
+})();
+</script>
+<script>
+(function(){
+const $=s=>document.querySelector(s),all=s=>[].slice.call(document.querySelectorAll(s));
+/* marquee */
+const mw=['وظائف موثّقة','مطابقة ذكية','مساعد سند','إشعارات فورية','سيرة PDF بضغطة','شركات موثّقة','تقديم سريع'];
+$('#mqin').innerHTML=(mw.map(w=>'<span>'+w+'</span><i>✦</i>').join('')).repeat(4);
+/* progress + nav */
+const pr=$('#prog'),nv=$('nav');
+function sc(){const h=document.documentElement;pr.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';nv.classList.toggle('sc',h.scrollTop>30)}
+addEventListener('scroll',sc,{passive:true});sc();
+/* reveal */
+const tgt=[];
+all('section .wrap > *').forEach(e=>{if(!e.classList.contains('stats')&&!e.classList.contains('grid')&&!e.classList.contains('jb'))tgt.push(e)});
+all('.grid > *, .jb, .locs').forEach(e=>tgt.push(e));
+const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
+tgt.forEach((e,i)=>{e.classList.add('rv');if(e.parentElement.classList.contains('grid')){e.style.setProperty('--d',([].indexOf.call(e.parentElement.children,e)%6)*.09+'s')}io.observe(e)});
+all('.stat').forEach((e,i)=>{e.style.setProperty('--d',i*.1+'s');io.observe(e)});
+/* counters */
+const co=new IntersectionObserver(es=>es.forEach(x=>{if(!x.isIntersecting)return;const b=x.target.querySelector('b'),n=+b.dataset.n,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/1400);b.textContent=Math.round(n*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0);co.unobserve(x.target)}),{threshold:.6});
+all('.stat').forEach(e=>co.observe(e));
+/* glow follows mouse in hero; card spotlight */
+const hero=$('#top'),gl=$('#glow');
+hero.addEventListener('mousemove',e=>{const r=hero.getBoundingClientRect();gl.style.left=(e.clientX-r.left)+'px';gl.style.top=(e.clientY-r.top)+'px'});
+all('.feat').forEach(f=>f.addEventListener('mousemove',e=>{const r=f.getBoundingClientRect();f.style.setProperty('--mx',(e.clientX-r.left)+'px');f.style.setProperty('--my',(e.clientY-r.top)+'px')}));
+/* stagger job rows after each render */
+const rows=$('#rows');
+new MutationObserver(()=>all('#rows .jr').forEach((r,i)=>r.style.setProperty('--n',i))).observe(rows,{childList:true});
 })();
 </script>
 </body>
