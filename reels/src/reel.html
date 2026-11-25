@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>reel-01-signup</title>
+<style>
+/* الخطوط والألوان من welcome/index.html */
+@font-face{font-family:'Reem Kufi';font-weight:700;src:url(../../welcome/fonts/reem-kufi-arabic-700-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Reem Kufi';font-weight:700;src:url(../../welcome/fonts/reem-kufi-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF}
+@font-face{font-family:'Plex';font-weight:400;src:url(../../welcome/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Plex';font-weight:400;src:url(../../welcome/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF}
+@font-face{font-family:'Plex';font-weight:500;src:url(../../welcome/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Plex';font-weight:500;src:url(../../welcome/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF}
+@font-face{font-family:'Plex';font-weight:600;src:url(../../welcome/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Plex';font-weight:600;src:url(../../welcome/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF}
+@font-face{font-family:'Plex';font-weight:700;src:url(../../welcome/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Plex';font-weight:700;src:url(../../welcome/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF}
+:root{--dusk:#160E2E;--tower:#241650;--tower2:#2E1D63;--lamp:#C8F135;--paper:#F6F5FA;--ink:#16102B;--mute:#6A6488;--line:#E4E0F0;--indigo:#5B3DF5;--ok:#17874A;
+  --display:'Reem Kufi','Plex',sans-serif;--body:'Plex',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--dusk)}
+body{font-family:var(--body);color:#fff;-webkit-font-smoothing:antialiased;direction:rtl}
+.abs{position:absolute}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:linear-gradient(180deg,#1A1036 0%,#160E2E 45%,#120B26 100%)}
+.glow{position:absolute;border-radius:50%;filter:blur(40px)}
+#g1{width:900px;height:900px;background:radial-gradient(closest-side,rgba(91,61,245,.45),transparent)}
+#g2{width:700px;height:700px;background:radial-gradient(closest-side,rgba(46,29,99,.9),transparent)}
+#g3{width:500px;height:500px;background:radial-gradient(closest-side,rgba(200,241,53,.10),transparent)}
+
+/* الأعلى: الشعار، ثم عنوان المشهد (هامش آمن 150px) */
+#brand{top:150px;left:0;right:0;display:flex;justify-content:center}
+#brand img{height:64px}
+.head{top:250px;left:90px;right:90px;text-align:center;font-family:var(--display);font-weight:700;font-size:96px;line-height:1.25;color:#fff;will-change:transform,opacity}
+.head b{color:var(--lamp);font-weight:700}
+
+/* الجوال */
+#phone{left:500px;top:425px;transform-origin:50% 0;width:470px;height:930px;border-radius:66px;background:#0D0720;border:10px solid var(--tower2);
+  box-shadow:0 40px 90px rgba(5,2,15,.6),0 0 0 2px rgba(255,255,255,.06) inset,0 0 80px rgba(91,61,245,.35)}
+#screen{position:absolute;inset:10px;border-radius:52px;background:var(--paper);overflow:hidden;color:var(--ink)}
+.notch{position:absolute;top:14px;left:50%;width:120px;height:32px;margin-left:-60px;border-radius:16px;background:#0D0720;z-index:20}
+.status{position:absolute;top:16px;right:34px;left:34px;display:flex;justify-content:space-between;font-size:20px;font-weight:600;direction:ltr;z-index:19}
+.scr{position:absolute;inset:0;padding:78px 28px 28px}
+.demo{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:17px;color:rgba(22,16,43,.42);font-weight:500}
+
+/* شاشة 1: الدخول */
+#s1{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:150px}
+#s1 .mk{width:150px;height:150px;border-radius:42px}
+#s1 h3{font-family:var(--display);font-size:50px;margin-top:22px}
+#s1 p{font-size:22px;color:var(--mute);margin-top:4px}
+.gbtn{position:absolute;left:28px;right:28px;bottom:150px;height:86px;border-radius:24px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;gap:14px;font-size:25px;font-weight:700;color:var(--ink);box-shadow:0 8px 24px rgba(22,16,43,.08)}
+.gbtn svg{width:34px;height:34px}
+.ok{position:absolute;left:28px;right:28px;bottom:150px;height:86px;border-radius:24px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;font-size:25px;font-weight:700}
+.ok i{width:34px;height:34px;border-radius:50%;background:var(--lamp);display:grid;place-items:center;color:var(--ink);font-style:normal;font-size:20px;font-weight:800}
+.tap{position:absolute;border-radius:50%;border:4px solid var(--indigo);pointer-events:none}
+
+/* شاشة 2: السيرة */
+.tt{font-family:var(--display);font-size:34px;font-weight:700;margin-bottom:18px}
+.file{border-radius:24px;background:#fff;border:2px solid var(--line);padding:18px;display:flex;gap:14px;align-items:center}
+.pdf{width:58px;height:70px;border-radius:12px;background:var(--indigo);color:#fff;font-weight:700;font-size:17px;display:grid;place-items:center;direction:ltr;flex:none}
+.file b{font-size:23px;direction:ltr;display:block;text-align:right}
+.file span{font-size:18px;color:var(--mute)}
+.prog{height:10px;border-radius:5px;background:var(--line);margin-top:12px;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--indigo),var(--lamp))}
+.done{margin-top:12px;display:inline-flex;gap:8px;align-items:center;font-size:20px;font-weight:700;color:var(--ok)}
+.fld{margin-top:16px}
+.fld label{display:block;font-size:17px;color:var(--mute);font-weight:600;margin-bottom:6px}
+.fld .v{height:56px;border-radius:16px;background:#fff;border:2px solid var(--line);padding:0 16px;display:flex;align-items:center;font-size:21px;font-weight:600;overflow:hidden;white-space:nowrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:6px 14px;border-radius:14px;background:#EEE9FB;color:var(--tower2);font-size:18px;font-weight:600}
+
+/* شاشة 3: الوظائف */
+.job{border-radius:24px;background:#fff;border:2px solid var(--line);padding:18px 18px 16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(22,16,43,.05)}
+.job .top{display:flex;gap:12px;align-items:center}
+.lg{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;color:#fff;font-family:var(--display);font-size:26px;flex:none}
+.job h4{font-size:23px;font-weight:700;line-height:1.3}
+.job small{font-size:17px;color:var(--mute)}
+.job .bot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.ver{display:inline-flex;gap:6px;align-items:center;font-size:17px;font-weight:700;color:var(--ok);background:#E7F6EC;padding:4px 12px;border-radius:12px}
+.match{font-size:22px;font-weight:700;color:var(--indigo)}
+.match .ring{display:inline-block;width:30px;height:30px;vertical-align:-8px;margin-inline-start:6px}
+
+/* شاشة 4: الإشعار والتقديم */
+.noti{position:absolute;left:14px;right:14px;top:60px;border-radius:26px;background:rgba(255,255,255,.97);box-shadow:0 18px 40px rgba(22,16,43,.22);padding:16px;display:flex;gap:12px;align-items:center;z-index:15;border:2px solid var(--lamp)}
+.noti img{width:50px;height:50px;border-radius:14px;flex:none}
+.noti b{font-size:18px}.noti span{font-size:16px;color:var(--mute)}
+.noti p{font-size:20px;font-weight:700;line-height:1.35;margin-top:2px}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:520px;border-radius:34px 34px 0 0;background:#fff;box-shadow:0 -14px 40px rgba(22,16,43,.15);padding:30px 28px;z-index:14}
+.sheet h4{font-size:30px;font-weight:700}
+.sheet .meta{font-size:19px;color:var(--mute);margin-top:4px}
+.sheet .rows{margin-top:18px;display:grid;gap:10px}
+.sheet .rows div{height:16px;border-radius:8px;background:#EEEBF6}
+.apply{position:absolute;left:28px;right:28px;bottom:84px;height:84px;border-radius:24px;background:var(--lamp);color:var(--ink);display:flex;align-items:center;justify-content:center;gap:12px;font-size:27px;font-weight:700}
+.dim{position:absolute;inset:0;background:rgba(22,16,43,.35);z-index:13}
+
+/* الشخصيات */
+.char{bottom:540px;height:760px;filter:drop-shadow(0 24px 34px rgba(5,2,15,.55))}
+.pod{width:330px;height:64px;border-radius:50%;bottom:510px;background:radial-gradient(closest-side,#3B2A86,#241650);box-shadow:0 0 0 3px rgba(200,241,53,.7),0 0 40px rgba(91,61,245,.55)}
+
+/* مشهد الختام */
+#end{left:0;right:0;top:0;bottom:0}
+#endMark{position:absolute;left:50%;top:520px;width:280px;height:280px;margin-left:-140px;border-radius:78px;box-shadow:0 30px 80px rgba(91,61,245,.55)}
+#endWord{position:absolute;left:0;right:0;top:830px;text-align:center;font-family:var(--display);font-size:110px;line-height:1.2;color:#fff}
+#endLine{position:absolute;left:90px;right:90px;top:1000px;text-align:center;font-family:var(--display);font-size:82px;line-height:1.3}
+#endLine b{color:var(--lamp)}
+#endPill{position:absolute;left:50%;top:1190px;transform:translateX(-50%);display:flex;gap:14px;align-items:center;height:96px;padding:0 48px;border-radius:48px;background:var(--lamp);color:var(--ink);font-size:38px;font-weight:700;white-space:nowrap}
+#endPill svg{width:34px;height:34px}
+
+/* الترجمة المتزامنة (فوق الهامش السفلي الآمن 250px) */
+#cap{left:80px;right:80px;bottom:250px;min-height:180px;display:flex;align-items:flex-end;justify-content:center}
+.line{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:var(--body);font-weight:700;font-size:54px;line-height:1.55;text-shadow:0 4px 18px rgba(5,2,15,.6)}
+.line span{color:rgba(255,255,255,.5)}
+.line span.past{color:#fff}
+.line span.now{color:var(--lamp)}
+</style></head>
+<body><div id="stage">
+  <div id="g1" class="glow"></div><div id="g2" class="glow"></div><div id="g3" class="glow"></div>
+  <div id="brand" class="abs"><img src="../../assets/brand/logo-horizontal-white.svg" alt="وظيفتي"></div>
+
+  <div class="head abs" id="h1">تبحث عن <b>وظيفة</b>؟</div>
+  <div class="head abs" id="h2">ارفع <b>سيرتك</b></div>
+  <div class="head abs" id="h3">وظائف <b>موثّقة</b></div>
+  <div class="head abs" id="h4">إشعار <b>فوري</b></div>
+
+  <div class="pod abs" id="pod"></div>
+  <img class="char abs" id="c1" src="../../posters/src/chars/m_polo.png">
+  <img class="char abs" id="c2" src="../../posters/src/chars/f_blue.png">
+  <img class="char abs" id="c3" src="../../posters/src/chars/m_pink.png">
+  <img class="char abs" id="c4" src="../../posters/src/chars/f_brown.png">
+
+  <div id="phone" class="abs"><div id="screen">
+    <div class="notch"></div><div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <!-- 1: الدخول بحساب جوجل -->
+    <div class="scr" id="s1"><img class="mk" src="../../assets/brand/mark.svg"><h3>وظيفتي</h3><p>وظائف موثّقة في اليمن</p>
+      <div class="gbtn" id="gbtn"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>الدخول بحساب جوجل</div>
+      <div class="ok" id="okIn"><i>✓</i>تم الدخول</div>
+      <div class="tap" id="tap1"></div>
+    </div>
+    <!-- 2: رفع السيرة -->
+    <div class="scr" id="s2"><div class="tt">ملفي</div>
+      <div class="file" id="file"><div class="pdf">PDF</div><div style="flex:1"><b>CV.pdf</b><span id="fstat">جاري الرفع…</span><div class="prog"><i id="prog"></i></div></div></div>
+      <div class="done" id="read">✓ تمت القراءة</div>
+      <div class="fld" id="f1"><label>الاسم</label><div class="v"><span id="v1"></span></div></div>
+      <div class="fld" id="f2"><label>الخبرات</label><div class="v"><span id="v2"></span></div></div>
+      <div class="fld" id="f3"><label>المهارات</label><div class="v" style="border:0;background:none;padding:0"><div class="chips" id="v3"><span class="chip">محاسبة</span><span class="chip">Excel</span><span class="chip">تقارير مالية</span></div></div></div>
+      <div class="demo">مثال توضيحي</div>
+    </div>
+    <!-- 3: الوظائف الموثّقة -->
+    <div class="scr" id="s3"><div class="tt">وظائف تناسبك</div><div id="jobs">
+      <div class="job"><div class="top"><div class="lg" style="background:#5B3DF5">أ</div><div><h4>محاسب مالي</h4><small>شركة الأفق · صنعاء</small></div></div><div class="bot"><span class="ver">✓ موثّقة</span><span class="match"><span class="mv">92</span>٪<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#E4E0F0" stroke-width="5"/><circle class="rc" cx="18" cy="18" r="14" fill="none" stroke="#5B3DF5" stroke-width="5" stroke-linecap="round" stroke-dasharray="88" transform="rotate(-90 18 18)"/></svg></span></div></div>
+      <div class="job"><div class="top"><div class="lg" style="background:#2E1D63">س</div><div><h4>مدير مبيعات</h4><small>مؤسسة سبأ · عدن</small></div></div><div class="bot"><span class="ver">✓ موثّقة</span><span class="match"><span class="mv">87</span>٪<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#E4E0F0" stroke-width="5"/><circle class="rc" cx="18" cy="18" r="14" fill="none" stroke="#5B3DF5" stroke-width="5" stroke-linecap="round" stroke-dasharray="88" transform="rotate(-90 18 18)"/></svg></span></div></div>
+      <div class="job"><div class="top"><div class="lg" style="background:#16102B">ت</div><div><h4>مصمم جرافيك</h4><small>استوديو تعز · تعز</small></div></div><div class="bot"><span class="ver">✓ موثّقة</span><span class="match"><span class="mv">81</span>٪<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#E4E0F0" stroke-width="5"/><circle class="rc" cx="18" cy="18" r="14" fill="none" stroke="#5B3DF5" stroke-width="5" stroke-linecap="round" stroke-dasharray="88" transform="rotate(-90 18 18)"/></svg></span></div></div>
+      <div class="job"><div class="top"><div class="lg" style="background:#4529D6">ح</div><div><h4>مهندس شبكات</h4><small>حضرموت تك · المكلا</small></div></div><div class="bot"><span class="ver">✓ موثّقة</span><span class="match"><span class="mv">78</span>٪<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#E4E0F0" stroke-width="5"/><circle class="rc" cx="18" cy="18" r="14" fill="none" stroke="#5B3DF5" stroke-width="5" stroke-linecap="round" stroke-dasharray="88" transform="rotate(-90 18 18)"/></svg></span></div></div>
+    </div><div class="demo" style="background:linear-gradient(transparent,#F6F5FA 40%);padding-top:20px;bottom:0;padding-bottom:18px">مثال توضيحي</div></div>
+    <!-- 4: الإشعار والتقديم -->
+    <div class="scr" id="s4"><div class="tt">الرئيسية</div>
+      <div class="job" style="opacity:.55"><div class="top"><div class="lg" style="background:#2E1D63">س</div><div><h4>مدير مبيعات</h4><small>مؤسسة سبأ · عدن</small></div></div></div>
+      <div class="job" style="opacity:.55"><div class="top"><div class="lg" style="background:#16102B">ت</div><div><h4>مصمم جرافيك</h4><small>استوديو تعز · تعز</small></div></div></div>
+      <div class="noti" id="noti"><img src="../../assets/brand/mark.svg"><div style="flex:1"><div style="display:flex;justify-content:space-between"><b>وظيفتي</b><span>الآن</span></div><p>شركة الأفق نزّلت وظيفة مناسبة لك</p></div></div>
+      <div class="dim" id="dim"></div>
+      <div class="sheet" id="sheet"><h4>محاسب مالي</h4><div class="meta">شركة الأفق · صنعاء · ✓ موثّقة</div><div class="rows"><div style="width:92%"></div><div style="width:80%"></div><div style="width:66%"></div></div>
+        <div class="apply" id="apply">قدّم بضغطة</div><div class="ok" id="okAp" style="bottom:84px;height:84px"><i>✓</i>تم التقديم</div><div class="tap" id="tap2"></div>
+        <div class="demo" style="bottom:20px">مثال توضيحي</div></div>
+    </div>
+  </div></div>
+
+  <div id="end" class="abs">
+    <img id="endMark" src="../../assets/brand/mark.svg">
+    <div id="endWord">وظيفتي</div>
+    <div id="endLine">وظيفتك القادمة، <b>بذكاء</b></div>
+    <div id="endPill"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="#16102B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>الرابط في البايو</div>
+  </div>
+
+  <div id="cap" class="abs"></div>
+</div>
+<script>
+// ===== محرك حركة حتمي: render(t) يرسم الإطار عند الزمن t بالثواني =====
+const $ = id => document.getElementById(id);
+const clamp = x => Math.max(0, Math.min(1, x));
+const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;     // easeInOutCubic
+const eo = x => 1 - Math.pow(1 - x, 3);                                           // easeOutCubic
+const P = (t, t0, d = .7, f = ease) => f(clamp((t - t0) / d));
+const lerp = (a, b, k) => a + (b - a) * k;
+let TL, L, W;
+
+function init(tl) {
+  TL = tl; L = tl.lines;
+  // وقت بداية أول كلمة تحتوي النص المعطى في الجملة k
+  W = (k, s) => { const w = L[k - 1].words.find(x => x.w.includes(s)); if (!w) throw new Error('word ' + s); return w.t; };
+  // الترجمة: كلمات كل جملة
+  $('cap').innerHTML = L.map((l, i) => `<div class="line" id="L${i}">${l.words.map((w, j) => `<span id="w${i}_${j}">${w.w}</span>`).join(' ')}</div>`).join('');
+}
+
+function set(el, o, tf) { el.style.opacity = o.toFixed(3); if (tf !== undefined) el.style.transform = tf; }
+// ظهور ثم اختفاء ناعم بين t0 و t1
+const win = (t, t0, t1, d = .6) => P(t, t0, d) * (1 - P(t, t1, d));
+
+function render(t) {
+  const S = L.map(l => l.start), E = L.map(l => l.end);
+  // خلفية تتنفس ببطء شديد
+  $('g1').style.transform = `translate(${-200 + 40 * Math.sin(t / 7)}px,${300 + 30 * Math.cos(t / 9)}px)`;
+  $('g2').style.transform = `translate(${420 + 30 * Math.cos(t / 8)}px,${1100 + 40 * Math.sin(t / 10)}px)`;
+  $('g3').style.transform = `translate(${560 + 20 * Math.sin(t / 6)}px,${380}px)`;
+
+  const tOut = S[4] - .35;                      // بداية خروج الجوال للختام
+  set($('brand'), P(t, .1, .6) * (1 - P(t, tOut, .6)));
+
+  // ——— المشهد 1: عنوان كبير في المنتصف ثم يصعد ويدخل الجوال ———
+  const tPhone = W(1, 'سجّل') - .25;
+  const up = P(t, tPhone - .1, .8);
+  const h1 = $('h1');
+  h1.style.opacity = (P(t, .15, .6) * (1 - P(t, S[1] - .45, .5))).toFixed(3);
+  h1.style.transform = `translateY(${lerp(470, 0, up) + lerp(30, 0, P(t, .15, .6))}px) scale(${lerp(1.3, 1, up)})`;
+  ['h2', 'h3', 'h4'].forEach((id, i) => {
+    const k = P(t, S[i + 1] - .3, .6), out = P(t, (i < 2 ? S[i + 2] - .45 : tOut), .5);
+    set($(id), k * (1 - out), `translateY(${lerp(28, 0, k)}px)`);
+  });
+
+  // الجوال
+  const pin = P(t, tPhone, .8), pout = P(t, tOut, .7);
+  set($('phone'), pin * (1 - pout), `translateY(${lerp(160, 0, pin) + lerp(0, 80, pout)}px) scale(1.1)`);
+
+  // الشاشات: انتقال ناعم بالانزلاق والتلاشي
+  const scr = (id, a, b) => { const k = P(t, a, .6), o = b ? P(t, b, .6) : 0; set($(id), k * (1 - o), `translateX(${lerp(-60, 0, k) + lerp(0, 60, o)}px)`); };
+  scr('s1', -1, S[1] - .3); scr('s2', S[1] - .3, S[2] - .3); scr('s3', S[2] - .3, S[3] - .3); scr('s4', S[3] - .3, null);
+
+  // 1: ضغط زر جوجل عند كلمة «جوجل»
+  const tTap = W(1, 'جوجل');
+  const press = P(t, tTap, .18) * (1 - P(t, tTap + .18, .25));
+  $('gbtn').style.transform = `scale(${1 - .04 * press})`;
+  const tr = clamp((t - tTap) / .7);
+  set($('tap1'), t >= tTap ? (1 - tr) * .9 : 0, `scale(${.4 + tr})`);
+  Object.assign($('tap1').style, { width: '140px', height: '140px', left: '160px', bottom: '125px' });
+  const okk = P(t, tTap + .55, .5);
+  set($('okIn'), okk, `scale(${lerp(.96, 1, okk)})`); $('gbtn').style.opacity = (1 - okk).toFixed(3);
+
+  // 2: رفع الملف ثم القراءة ثم تعبئة الحقول
+  const tUp = W(2, 'ارفع') + .1, tRead = W(2, 'ويقرأها') + .3, tFill = W(2, 'ويعبّئ');
+  set($('file'), P(t, tUp, .6), `translateY(${lerp(30, 0, P(t, tUp, .6))}px)`);
+  $('prog').style.width = (100 * P(t, tUp + .3, tRead - tUp - .3, x => x)).toFixed(1) + '%';
+  $('fstat').textContent = t < tRead ? 'جاري القراءة…' : 'تمت القراءة في ثوانٍ';
+  set($('read'), P(t, tRead, .5));
+  const typ = (id, txt, t0, d) => { const n = Math.round(txt.length * clamp((t - t0) / d)); $(id).textContent = txt.slice(0, n); };
+  [['f1', tFill - .2], ['f2', tFill + .25], ['f3', tFill + .7]].forEach(([id, a]) => set($(id), P(t, a, .5), `translateY(${lerp(20, 0, P(t, a, .5))}px)`));
+  typ('v1', 'محمد عبدالله', tFill, .6); typ('v2', 'محاسب · 4 سنوات خبرة', tFill + .45, .8);
+  [...$('v3').children].forEach((c, i) => set(c, P(t, tFill + .9 + i * .2, .4), `scale(${lerp(.85, 1, P(t, tFill + .9 + i * .2, .4))})`));
+
+  // 3: بطاقات تنزلق ببطء، شارة التوثيق، ونسبة المطابقة تعدّ
+  const tJ = S[2] - .3, tVer = W(3, 'موثّقة') - .1, tMatch = W(3, 'نسبة');
+  $('jobs').style.transform = `translateY(${lerp(90, -30, clamp((t - tJ) / (E[2] - tJ + .5)))}px)`;
+  [...$('jobs').children].forEach((j, i) => {
+    set(j, P(t, tJ + .15 + i * .18, .6), `translateY(${lerp(40, 0, P(t, tJ + .15 + i * .18, .6))}px)`);
+    set(j.querySelector('.ver'), P(t, tVer + i * .12, .45));
+    const target = [92, 87, 81, 78][i], k = P(t, tMatch + i * .1, 1.3, eo);
+    set(j.querySelector('.match'), P(t, tMatch - .25 + i * .1, .4));
+    j.querySelector('.mv').textContent = Math.round(target * k);
+    j.querySelector('.rc').setAttribute('stroke-dashoffset', (88 - 88 * target / 100 * k).toFixed(1));
+  });
+
+  // 4: إشعار ينزل من الأعلى، ثم صفحة الوظيفة وزر «قدّم بضغطة»
+  const tNoti = W(4, 'تنزل') - .1, tSheet = W(4, 'وتقدّم') - .35, tApply = W(4, 'بضغطة');
+  const nk = P(t, tNoti, .7), nOut = P(t, tSheet, .5);
+  set($('noti'), nk * (1 - nOut), `translateY(${lerp(-160, 0, nk) + lerp(0, -40, nOut)}px) scale(${1 + .03 * Math.sin(clamp((t - W(4, 'إشعار')) / .6) * Math.PI)})`);
+  const sk = P(t, tSheet, .7);
+  set($('dim'), sk); set($('sheet'), 1, `translateY(${lerp(560, 0, sk)}px)`);
+  const pr = P(t, tApply, .18) * (1 - P(t, tApply + .18, .25));
+  $('apply').style.transform = `scale(${1 - .04 * pr})`;
+  const tr2 = clamp((t - tApply) / .7);
+  Object.assign($('tap2').style, { width: '140px', height: '140px', left: '140px', bottom: '56px' });
+  set($('tap2'), t >= tApply ? (1 - tr2) * .9 : 0, `scale(${.4 + tr2})`);
+  const ap = P(t, tApply + .5, .5); set($('okAp'), ap); $('apply').style.opacity = (1 - ap).toFixed(3);
+
+  // الشخصيات: واحدة لكل مشهد تدخل بانزلاق ناعم
+  const cw = [[S[0] + .2, S[1] - .3], [S[1] - .3, S[2] - .3], [S[2] - .3, S[3] - .3], [S[3] - .3, tOut]];
+  ['c1', 'c2', 'c3', 'c4'].forEach((id, i) => {
+    const [a, b] = cw[i], k = P(t, i ? a : tPhone, .7), o = P(t, b, .6);
+    const el = $(id); el.style.left = '90px';
+    set(el, k * (1 - o), `translateX(${lerp(-70, 0, k) + lerp(0, -50, o)}px)`);
+  });
+  const pk = P(t, tPhone, .7) * (1 - P(t, tOut, .6)); set($('pod'), pk); $('pod').style.left = '70px';
+
+  // ——— المشهد 5: الشعار في المنتصف ———
+  const e1 = P(t, S[4] - .1, .8), e2 = P(t, W(5, 'وظيفتك') - .15, .7), e3 = P(t, W(5, 'حمّل') - .1, .7);
+  set($('endMark'), e1, `translateY(${lerp(50, 0, e1)}px) scale(${lerp(.85, 1, e1)})`);
+  set($('endLine'), e2, `translateY(${lerp(30, 0, e2)}px)`);
+  set($('endPill'), e3, `translateX(-50%) translateY(${lerp(30, 0, e3)}px)`);
+  // اسم وظيفتي تحت الرمز (نسخة الشعار الأفقي البيضاء مقصوصة على النص فقط)
+  set($('endWord'), e1);
+
+  // ——— الترجمة المتزامنة ———
+  L.forEach((l, i) => {
+    const el = $('L' + i), k = P(t, l.start - .2, .25), o = P(t, l.end + .2, .25);
+    set(el, k * (1 - (i < L.length - 1 ? o : 0)), `translateY(${lerp(16, 0, k)}px)`);
+    l.words.forEach((w, j) => {
+      const s = $(`w${i}_${j}`), next = l.words[j + 1] ? l.words[j + 1].t : w.e + .15;
+      s.className = t >= w.t && t < next ? 'now' : t >= next ? 'past' : '';
+    });
+  });
+}
+window.init = init; window.render = render;
+</script>
+</body></html>
