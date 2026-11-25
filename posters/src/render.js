@@ -2,7 +2,7 @@
 // ثم يصغّرها build.py إلى 1080×1350 ويجمع preview.png
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
-const { POSTS, page } = require('./posters');
+const { POSTS, page } = require(process.env.POSTER_MODULE || './scenes');
 
 const SRC = __dirname, BUILD = path.join(SRC, 'build'), OUT2X = process.argv[2] || path.join(SRC, 'build', '2x');
 fs.mkdirSync(BUILD, { recursive: true }); fs.mkdirSync(OUT2X, { recursive: true });
@@ -22,20 +22,30 @@ fs.mkdirSync(BUILD, { recursive: true }); fs.mkdirSync(OUT2X, { recursive: true 
     // فحص: هوامش 90px، سطران للعنوان كحد أقصى، لا تداخل بين الكتل، الخط محمّل
     const report = await tab.evaluate(() => {
       const issues = [], M = 90, W = 1080, H = 1350;
-      const box = s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
-      for (const s of ['header', '.stage', '.badge', '.cvrow', '.copy', 'footer', 'h1', '.sub', '.cta']) {
-        const r = box(s); if (!r) continue;
-        if (r.left < M - .5 || r.right > W - M + .5 || r.top < M - .5 || r.bottom > H - M + .5) issues.push(`${s} outside margins ${JSON.stringify([r.left, r.top, r.right, r.bottom].map(Math.round))}`);
+      const R = e => e.getBoundingClientRect();
+      const hit = (a, b) => !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+      const copyEls = ['h1', '.sub', '.cta'].map(s => document.querySelector(s)).filter(Boolean);
+      // كل سطر نص يجب أن يبقى داخل الهوامش
+      for (const e of [...copyEls, document.querySelector('footer'), document.querySelector('header')]) {
+        const r = R(e); if (r.left < M - .5 || r.right > W - M + .5 || r.top < M - .5 || r.bottom > H - M + .5) issues.push(`${e.tagName}.${e.className} outside margins`);
       }
-      const h1 = document.querySelector('h1');
-      const lines = [...h1.querySelectorAll('.ln1')].reduce((n, l) => n + Math.round(l.getBoundingClientRect().height / parseFloat(getComputedStyle(h1).lineHeight)), 0);
-      if (lines > 2) issues.push(`title wraps to ${lines} lines`);
-      const sub = document.querySelector('.sub'); const sl = Math.round(sub.getBoundingClientRect().height / parseFloat(getComputedStyle(sub).lineHeight));
-      const b = box('.badge'), a0 = box('.stage') || box('.cvrow'); const art = b && b.bottom > a0.bottom ? b : a0; const _ = 0, copy = box('.copy'), foot = box('footer');
-      if (art.bottom + 40 > copy.top) issues.push(`art/copy too close: gap ${Math.round(copy.top - art.bottom)}`);
-      if (copy.bottom + 40 > foot.top) issues.push('copy/footer too close');
+      // العنوان سطران كحد أقصى
+      const h1 = document.querySelector('h1'), lh = parseFloat(getComputedStyle(h1).lineHeight);
+      const lines = [...h1.querySelectorAll('.ln1')].reduce((n, l) => n + Math.round(R(l).height / lh), 0);
+      if (lines > 2) issues.push(`title ${lines} lines`);
+      // النص لا يلامس الشخصيات ولا البطاقات (نقيس عرض كل سطر فعلياً)
+      const textRects = [...h1.querySelectorAll('.ln1'), document.querySelector('.sub'), document.querySelector('.cta')].filter(Boolean).flatMap(e => {
+        const rg = document.createRange(); rg.selectNodeContents(e); return [...rg.getClientRects()];
+      });
+      const others = [...document.querySelectorAll('.char, .obj, .orb, .spark')].map(e => [e.className.baseVal ?? e.className, R(e)]);
+      for (const t of textRects) for (const [nm, o] of others) {
+        const pad = { left: o.left - 16, right: o.right + 16, top: o.top - 16, bottom: o.bottom + 16 };
+        if (hit(t, pad)) { issues.push(`text near ${nm}`); break; }
+      }
+      const foot = R(document.querySelector('footer'));
+      for (const [nm, o] of others) if (!nm.includes('char') && o.bottom > foot.top - 10) issues.push(`${nm} overlaps footer`);
       if (!document.fonts.check('800 88px Tajawal', 'وظيفتي')) issues.push('Tajawal not loaded');
-      return { issues, sublines: sl, gap: Math.round(copy.top - art.bottom) };
+      return { issues: [...new Set(issues)] };
     });
     console.log(`post-${id}`, JSON.stringify(report));
     problems += report.issues.length;

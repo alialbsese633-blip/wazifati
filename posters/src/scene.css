@@ -1,0 +1,90 @@
+/* وظيفتي · ستايل المشهد ثلاثي الأبعاد (شخصية + منصة مضيئة + بطاقات عائمة) */
+:root{--ink:#1B1035;--plum:#2A1A52;--indigo:#5B3DF5;--lime:#C8F135;--mint:#7FE3A0;--mist:#F6F4FB;--gl:#EEE9FB;--line:#E6E1F2}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden;background:var(--ink)}
+body{font-family:'Tajawal',sans-serif;-webkit-font-smoothing:antialiased;direction:rtl;color:var(--mist)}
+.poster{position:relative;width:1080px;height:1350px;overflow:hidden}
+
+/* المشهد: جدار + ألواح + أرضية — نسختان متناوبتان */
+.wall{position:absolute;inset:0}
+.odd .wall{background:radial-gradient(700px 620px at 34% 58%,rgba(91,61,245,.55),transparent 70%),radial-gradient(900px 700px at 80% 0%,rgba(91,61,245,.18),transparent 70%),linear-gradient(180deg,#160C2E,#1B1035 60%,#140A28)}
+.even .wall{background:radial-gradient(700px 620px at 34% 58%,rgba(124,99,255,.60),transparent 70%),radial-gradient(900px 700px at 85% 0%,rgba(91,61,245,.30),transparent 70%),linear-gradient(180deg,#24164A,#2A1A52 55%,#1E1240)}
+.panel{position:absolute;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01));border:1.5px solid rgba(255,255,255,.05)}
+.floor{position:absolute;left:0;right:0;top:1040px;bottom:0;background:linear-gradient(180deg,rgba(91,61,245,.22),rgba(27,16,53,0) 70%)}
+.floor::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(200,190,255,.35),transparent)}
+
+/* المنصة المضيئة */
+.podium{position:absolute;z-index:2}
+.podium .side{position:absolute;left:0;right:0;top:50%;height:44px;background:linear-gradient(180deg,#3A2A7A,#1E1240);border-radius:0 0 50%/0 0 60%}
+.podium .top{position:absolute;inset:0;border-radius:50%;background:radial-gradient(closest-side,#4A36A8,#2E2066);box-shadow:0 0 0 3px rgba(200,241,53,.85),0 0 28px 6px rgba(200,241,53,.35),0 0 90px 20px rgba(91,61,245,.45)}
+
+/* حلقات الضوء */
+.rings{position:absolute;z-index:3;overflow:visible;pointer-events:none}
+.rings.front{z-index:5}
+.rings ellipse{fill:none;stroke-linecap:round}
+
+.char{position:absolute;z-index:4;filter:drop-shadow(0 18px 30px rgba(10,4,30,.55))}
+
+/* البطاقات العائمة (واجهة التطبيق) */
+.obj{position:absolute;z-index:6}
+.card{background:linear-gradient(160deg,#FFFFFF,#F1EEFB);color:var(--ink);border-radius:30px;padding:24px 26px;
+  box-shadow:0 30px 60px rgba(8,3,24,.45),inset 0 1px 0 rgba(255,255,255,.9);position:relative}
+.card.glass{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.06));color:var(--mist);border:1.5px solid rgba(255,255,255,.18);backdrop-filter:blur(8px)}
+.card .t{font-size:26px;font-weight:800;line-height:1.35}
+.card .s{font-size:21px;font-weight:500;color:#5C5675;line-height:1.5}
+.card.glass .s{color:#CFC8EA}
+.row{display:flex;align-items:center;gap:14px}
+.mark{width:56px;height:56px;border-radius:16px;flex:none;display:block}
+.chk{width:34px;height:34px;border-radius:50%;background:var(--lime);display:grid;place-items:center;flex:none}
+.chk svg{width:20px;height:20px}.chk path{fill:none;stroke:var(--ink);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.pill{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:22px;font-size:21px;font-weight:800;background:var(--lime);color:var(--ink)}
+.pill.ind{background:var(--indigo);color:#fff}
+.bar{height:12px;border-radius:6px;background:#E3DEF2}
+.lime-glow{box-shadow:0 0 0 3px rgba(200,241,53,.9),0 30px 60px rgba(8,3,24,.45),0 0 40px rgba(200,241,53,.35)}
+.orb{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8F78FF,#5B3DF5 55%,#2E1A8F);box-shadow:0 20px 40px rgba(8,3,24,.5),inset -8px -10px 20px rgba(0,0,0,.25),inset 6px 8px 14px rgba(255,255,255,.35);display:grid;place-items:center}
+.orb svg{width:52%;height:52%;overflow:visible}
+.orb path,.orb rect,.orb circle{fill:none;stroke:#fff;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.orb .lm{stroke:var(--lime)}
+.spark{position:absolute;z-index:6}
+.spark path{fill:var(--lime)}
+
+/* النصوص */
+header{position:absolute;top:90px;left:90px;z-index:8;direction:ltr;unicode-bidi:isolate}
+.num{font-size:24px;font-weight:500;letter-spacing:3px;color:#9C95BE;direction:ltr}
+.copy{position:absolute;top:150px;right:90px;left:90px;text-align:right;z-index:8}
+h1{font-weight:800;font-size:92px;line-height:1.18;letter-spacing:-.5px;color:#fff;text-shadow:0 6px 30px rgba(10,4,30,.35)}
+h1 .ln1{display:block}
+h1 .hi{color:var(--lime)}
+.ck{display:inline-block;width:.6em;height:.6em;vertical-align:.02em}
+.ck path{fill:none;stroke:var(--lime);stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+.sub{margin-top:22px;font-size:36px;font-weight:500;line-height:1.5;color:#DAD4F2}
+.cta{display:inline-flex;align-items:center;gap:14px;margin-top:34px;height:84px;padding:0 44px;border-radius:42px;font-size:33px;font-weight:800;background:var(--indigo);color:#fff;box-shadow:0 14px 40px rgba(91,61,245,.5)}
+.cta.big{height:100px;padding:0 64px;border-radius:50px;font-size:42px;background:var(--lime);color:var(--ink);box-shadow:0 14px 50px rgba(200,241,53,.35)}
+
+/* الشريط السفلي: الشعار يمين، حمّل وظيفتي يسار */
+footer{position:absolute;right:90px;left:90px;bottom:90px;height:74px;display:flex;align-items:center;justify-content:space-between;z-index:8}
+.logo{height:74px;width:auto;display:block}
+.dl{display:flex;align-items:center;gap:16px}
+.chev{width:44px;height:44px;flex:none}
+.dl b{display:block;font-size:34px;font-weight:800;color:#fff;line-height:1.15}
+.dl small{display:block;font-size:22px;font-weight:500;color:var(--lime);line-height:1.3}
+
+/* مصغّرات قوالب السيرة (بوستر 10) */
+.cv{width:170px;height:228px;border-radius:18px;background:#fff;overflow:hidden;padding:20px 16px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;box-shadow:0 24px 50px rgba(8,3,24,.5)}
+.cv i{display:block;height:9px;border-radius:5px;background:#D9D4E8;width:100%}
+.cv .w5{width:50%}.cv .w6{width:60%}.cv .w7{width:70%}.cv .w8{width:80%}
+.cv .hl{height:15px;width:72%;background:var(--ink)}
+.cv .c{align-self:center}
+.cv.k .rule{height:4px;background:var(--ink);margin:3px 0}.cv.k .w7{background:#B9B2D3}
+.cv.s .hl{background:#3a3a3a;width:64%}.cv.s .thin{height:2px;background:#ddd;margin:3px 0}.cv.s i:not(.hl):not(.thin){background:#E3E3E3}
+.cv.l{flex-direction:row;padding:0;gap:0}
+.cv.l .side{width:38%;height:100%;background:linear-gradient(180deg,#2A1A52,#120A26);padding:18px 10px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.cv.l .av{width:38px;height:38px;border-radius:50%;background:var(--lime)}
+.cv.l .side .ln{background:rgba(255,255,255,.28)}
+.cv.l .body{flex:1;padding:20px 12px;display:flex;flex-direction:column;gap:10px}
+.cv.l .bar2{height:5px;width:46%;background:var(--lime)}
+.cv.kh{padding:0;gap:0}
+.cv.kh .head{width:100%;height:80px;background:linear-gradient(120deg,#C8F135 0%,#7FE3A0 45%,#5B3DF5 100%);padding:20px 16px;display:flex;flex-direction:column;gap:10px}
+.cv.kh .head .ln{background:rgba(27,16,53,.35)}
+.cv.kh .pad{padding:18px 16px;display:flex;flex-direction:column;gap:10px;width:100%}
+.cvlab{margin-top:14px;text-align:center;font-size:24px;font-weight:800;color:#fff}
