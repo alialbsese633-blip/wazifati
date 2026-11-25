@@ -33,12 +33,18 @@ header{position:absolute;top:90px;right:90px;left:90px;height:64px;display:flex;
 .stage::before{inset:-28px}
 .stage::after{inset:-50px;border-style:dashed;opacity:.7}
 .icon{width:236px;height:236px;overflow:visible}
+.stage{top:210px;width:440px;height:440px;display:block}
+.people{position:absolute;inset:0;width:100%;height:100%;border-radius:50%}
+.badge{position:absolute;left:-46px;bottom:-6px;width:168px;height:168px;border-radius:44px;display:grid;place-items:center;z-index:2}
+.dark .badge{background:#2A1A52;border:2px solid rgba(246,244,251,.12)}
+.light .badge{background:#fff;border:2px solid var(--line);box-shadow:0 12px 30px rgba(27,16,53,.08)}
+.badge .icon{width:104px;height:104px}
 .icon .m,.icon .a{fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .icon .m{stroke:var(--fg)}
 .icon .a{stroke:var(--acc)}
 
-.has-cta .stage{top:220px;width:330px;height:330px}
-.has-cta .icon{width:200px;height:200px}
+.has-cta .stage{top:206px;width:370px;height:370px}
+.has-cta .badge{width:146px;height:146px;border-radius:38px}.has-cta .badge .icon{width:90px;height:90px}
 /* النص */
 .copy{position:absolute;right:90px;left:90px;bottom:262px;text-align:right}
 h1{font-weight:800;font-size:88px;line-height:1.22;letter-spacing:-.5px}

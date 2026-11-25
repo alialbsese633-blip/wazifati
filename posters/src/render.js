@@ -23,7 +23,7 @@ fs.mkdirSync(BUILD, { recursive: true }); fs.mkdirSync(OUT2X, { recursive: true 
     const report = await tab.evaluate(() => {
       const issues = [], M = 90, W = 1080, H = 1350;
       const box = s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
-      for (const s of ['header', '.stage', '.cvrow', '.copy', 'footer', 'h1', '.sub', '.cta']) {
+      for (const s of ['header', '.stage', '.badge', '.cvrow', '.copy', 'footer', 'h1', '.sub', '.cta']) {
         const r = box(s); if (!r) continue;
         if (r.left < M - .5 || r.right > W - M + .5 || r.top < M - .5 || r.bottom > H - M + .5) issues.push(`${s} outside margins ${JSON.stringify([r.left, r.top, r.right, r.bottom].map(Math.round))}`);
       }
@@ -31,7 +31,7 @@ fs.mkdirSync(BUILD, { recursive: true }); fs.mkdirSync(OUT2X, { recursive: true 
       const lines = [...h1.querySelectorAll('.ln1')].reduce((n, l) => n + Math.round(l.getBoundingClientRect().height / parseFloat(getComputedStyle(h1).lineHeight)), 0);
       if (lines > 2) issues.push(`title wraps to ${lines} lines`);
       const sub = document.querySelector('.sub'); const sl = Math.round(sub.getBoundingClientRect().height / parseFloat(getComputedStyle(sub).lineHeight));
-      const art = box('.stage') || box('.cvrow'), copy = box('.copy'), foot = box('footer');
+      const b = box('.badge'), a0 = box('.stage') || box('.cvrow'); const art = b && b.bottom > a0.bottom ? b : a0; const _ = 0, copy = box('.copy'), foot = box('footer');
       if (art.bottom + 40 > copy.top) issues.push(`art/copy too close: gap ${Math.round(copy.top - art.bottom)}`);
       if (copy.bottom + 40 > foot.top) issues.push('copy/footer too close');
       if (!document.fonts.check('800 88px Tajawal', 'وظيفتي')) issues.push('Tajawal not loaded');

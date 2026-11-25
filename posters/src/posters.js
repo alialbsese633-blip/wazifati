@@ -82,6 +82,23 @@ const ICONS = {
     <path class="m" d="M82 154h36"/>`,
 };
 
+const { scene } = require('./people');
+// الشخصيات لكل بوستر (الفهرس = رقم البوستر - 1)
+const CAST = [
+  [{ g: 'm', skin: 'a', outfit: '#F6F4FB', shirt: '#5B3DF5', prop: 'phone' }],
+  [{ g: 'f', skin: 'c', hijab: '#1B1035', outfit: '#5B3DF5' }],
+  [{ g: 'm', skin: 'b', outfit: '#5B3DF5', beard: true, prop: 'phone' }],
+  [{ g: 'f', skin: 'a', hijab: '#B9B2D3', outfit: '#1B1035', prop: 'paper' }],
+  [{ g: 'f', skin: 'b', hijab: '#F6F4FB', outfit: '#5B3DF5', prop: 'phone' }],
+  [{ g: 'm', skin: 'c', outfit: '#1B1035', kind: 'jacket', shirt: '#FFFFFF', beard: true }],
+  [{ g: 'm', skin: 'c', outfit: '#F6F4FB', shirt: '#B9B2D3', prop: 'phone' }],
+  [{ g: 'f', skin: 'b', hijab: '#5B3DF5', outfit: '#1B1035', prop: 'phone' }],
+  [{ g: 'm', skin: 'a', outfit: '#5B3DF5', beard: true }],
+  null,
+  [{ g: 'f', skin: 'c', hijab: '#B9B2D3', outfit: '#5B3DF5', kind: 'jacket', shirt: '#F6F4FB' }],
+  [{ g: 'f', skin: 'a', hijab: '#1B1035', outfit: '#5B3DF5' }, { g: 'm', skin: 'b', outfit: '#1B1035', kind: 'collar', shirt: '#FFFFFF' }],
+];
+
 // قوالب السيرة الأربعة (من js/cv-templates.js) — مصغّرات بنفس ألوانها
 const CV_MINIS = [
   { name: 'الخنجر', html: `<div class="cv k"><i class="hl"></i><i class="ln w7"></i><i class="ln w5"></i><i class="rule"></i><i class="ln"></i><i class="ln w8"></i><i class="ln w6"></i></div>` },
@@ -127,7 +144,8 @@ function page(i) {
   const [bx, by, br, rx, ry, rr] = DECOR[i];
   const stage = p.icon === 'cv'
     ? `<div class="cvrow">${CV_MINIS.map(c => `<figure>${c.html}<figcaption>${c.name}</figcaption></figure>`).join('')}</div>`
-    : `<div class="stage"><svg class="icon" viewBox="0 0 200 200">${ICONS[p.icon]}</svg></div>`;
+    : `<div class="stage">${scene(CAST[i], dark ? '#C8F135' : '#5B3DF5', 'clip' + n)}
+         <div class="badge"><svg class="icon" viewBox="0 0 200 200">${ICONS[p.icon]}</svg></div></div>`;
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <link rel="stylesheet" href="../fonts/tajawal.css"><link rel="stylesheet" href="../poster.css">
 <title>post-${String(n).padStart(2, '0')}</title></head>
