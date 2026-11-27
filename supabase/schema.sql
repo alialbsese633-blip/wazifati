@@ -686,3 +686,9 @@ grant execute on all functions in schema public to anon, authenticated;
 alter default privileges in schema public grant select on tables to anon, authenticated;
 alter default privileges in schema public grant insert, update, delete on tables to authenticated;
 alter default privileges in schema public grant execute on functions to anon, authenticated;
+
+-- =====================================================
+-- أمان إضافي: دوال داخلية لا يستدعيها إلا الخادم (service_role) أو الجدولة
+-- =====================================================
+revoke execute on function public.ai_hit(uuid, int) from public, anon, authenticated;
+revoke execute on function public.expire_jobs() from public, anon, authenticated;
