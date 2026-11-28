@@ -48,6 +48,9 @@ const CFG = window.WAZIFATI_CONFIG;
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const SCHEME = 'com.wazifati.admin';
+const IS_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+function plug(n) { const C = window.Capacitor; return (C.Plugins && C.Plugins[n]) || C.registerPlugin(n); }
 const A = { view: 'overview', me: null, jobs: [], comps: [], reports: [], users: 0, apps: 0, busy: false };
 const CN = {}, JN = {};
 function toast(m) { document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3500); }
@@ -75,7 +78,16 @@ async function boot() {
 }
 function renderLogin() {
   $('#root').innerHTML = `<div class="center"><img src="../assets/brand/mark-lime.svg" alt=""><h2>وظيفتي <span class="badge">الإدارة</span></h2><p class="mut">هذه الصفحة لفريق الإدارة فقط.</p><button class="b" id="gl">الدخول بحساب Google</button></div>`;
-  $('#gl').onclick = async () => { const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } }); if (error) toast(error.message); };
+  $('#gl').onclick = async () => {
+    try {
+      if (IS_APP) {
+        const { data, error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SCHEME + '://auth', skipBrowserRedirect: true } });
+        if (error) throw error; await plug('Browser').open({ url: data.url });
+      } else {
+        const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } }); if (error) throw error;
+      }
+    } catch (e) { toast(e.message || 'تعذّر الدخول'); }
+  };
 }
 function renderDenied(email) {
   $('#root').innerHTML = `<div class="center"><img src="../assets/brand/mark-lime.svg" alt=""><h2>لا توجد صلاحية</h2><p class="mut">الحساب ${esc(email || '')} ليس حساب إدارة.</p><button class="b g" id="lo">تسجيل الخروج</button></div>`;
@@ -125,6 +137,13 @@ document.addEventListener('click', async e => {
   finally { A.busy = false; }
 });
 sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN' && !A.me) boot(); });
+if (IS_APP) {
+  const App = plug('App');
+  App.addListener('appUrlOpen', async e => {
+    try { const u = new URL(e.url.replace(SCHEME + '://', 'https://x/')), code = u.searchParams.get('code'); if (code) { await sb.auth.exchangeCodeForSession(code); plug('Browser').close().catch(() => {}); } } catch (err) { toast('تعذّر الدخول: ' + err.message); }
+  });
+  App.addListener('backButton', () => App.exitApp());
+}
 boot();
 </script>
 </body>

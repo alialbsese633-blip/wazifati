@@ -1,0 +1,61 @@
+name: Build Admin Android APK
+on:
+  push:
+    branches: [main]
+    paths: ['admin/**', 'js/config.js', 'resources-admin/**', 'scripts/**', '.github/workflows/android-admin.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: android-admin-apk
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install
+        run: npm ci
+      - name: Configure admin app identity
+        run: |
+          node -e "const f='capacitor.config.json',c=JSON.parse(require('fs').readFileSync(f));c.appId='com.wazifati.admin';c.appName='وظيفتي الإدارة';c.android.backgroundColor='#2A1A52';require('fs').writeFileSync(f,JSON.stringify(c,null,2))"
+      - name: Prepare Android project
+        env:
+          APP_SCHEME: com.wazifati.admin
+          SKIP_FIREBASE: "1"
+        run: |
+          node scripts/build-web.mjs admin
+          rm -rf android
+          npx cap add android
+          node scripts/patch-android.mjs
+          npx capacitor-assets generate --android --assetPath resources-admin --iconBackgroundColor "#2A1A52" --iconBackgroundColorDark "#2A1A52" --splashBackgroundColor "#2A1A52" --splashBackgroundColorDark "#2A1A52"
+          npx cap sync android
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Rename APK
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk wazifati-admin.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wazifati-admin-apk
+          path: wazifati-admin.apk
+      - name: Publish to Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete admin-apk-latest --yes --cleanup-tag || true
+          gh release create admin-apk-latest wazifati-admin.apk \
+            --title "وظيفتي الإدارة - تطبيق أندرويد" \
+            --notes "تطبيق الإدارة (للفريق فقط). يُحدَّث تلقائياً عند تعديل مجلد admin." \
+            --prerelease
