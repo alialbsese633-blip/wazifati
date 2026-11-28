@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>وظيفتي · الإدارة</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<style>
+:root{--bg:#0B1117;--p:#101820;--p2:#16212B;--line:#243442;--ink:#EAF0F5;--mut:#8DA0B1;--or:#FF8A3D;--ok:#3DDC97;--red:#FF5C5C;--gold:#F2C14E}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Segoe UI",Tahoma,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--p);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header img{width:34px;height:34px}header b{font-size:17px}header small{color:var(--mut);display:block;font-size:12px;line-height:1.2}
+.sp{flex:1}nav{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;background:var(--p);border-bottom:1px solid var(--line)}
+nav button{background:transparent;border:1px solid var(--line);color:var(--mut);padding:8px 14px;border-radius:10px;cursor:pointer;font:inherit;white-space:nowrap}
+nav button.on{background:var(--or);color:#101820;border-color:var(--or);font-weight:700}
+nav .n{background:var(--red);color:#fff;border-radius:99px;padding:0 7px;font-size:12px;margin-inline-start:6px}
+main{max-width:1000px;margin:0 auto;padding:18px}h2{margin:6px 0 14px}h3{margin:0}
+.card{background:var(--p2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.mut{color:var(--mut);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat b{display:block;font-size:30px;color:var(--or)}
+button.b{background:var(--or);color:#101820;border:0;border-radius:9px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer}
+button.b.g{background:transparent;color:var(--ink);border:1px solid var(--line)}button.b.r{background:var(--red);color:#fff}button.b.ok{background:var(--ok)}
+button.b:disabled{opacity:.5}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:1px 10px;font-size:12px;color:var(--mut)}
+.chip.ok{color:var(--ok);border-color:var(--ok)}.chip.red{color:var(--red);border-color:var(--red)}.chip.gold{color:var(--gold);border-color:var(--gold)}
+table{width:100%;border-collapse:collapse}th,td{text-align:start;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-weight:600;font-size:13px}
+.tw{overflow-x:auto}.center{max-width:420px;margin:12vh auto;text-align:center}.center img{width:84px}
+.toast{position:fixed;bottom:18px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:#fff;color:#101820;padding:10px 18px;border-radius:10px;z-index:9}
+p.d{margin:8px 0 0;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="root"><div class="center mut">جارٍ التحميل…</div></div>
+<script src="../js/config.js"></script>
+<script src="../js/vendor/supabase.js"></script>
+<script>
+const CFG = window.WAZIFATI_CONFIG;
+const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const A = { view: 'overview', me: null, jobs: [], comps: [], reports: [], users: 0, apps: 0, busy: false };
+const CN = {}, JN = {};
+function toast(m) { document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3500); }
+async function q(p) { const { data, error } = await p; if (error) throw error; return data; }
+async function cnt(t) { const { count } = await sb.from(t).select('*', { count: 'exact', head: true }); return count || 0; }
+
+async function load() {
+  const [jobs, comps, reps, users, apps] = await Promise.all([
+    q(sb.from('jobs').select('*').order('created_at', { ascending: false }).limit(800)),
+    q(sb.from('companies').select('*').order('created_at', { ascending: false }).limit(2000)),
+    q(sb.from('reports').select('*').order('created_at', { ascending: false }).limit(300)),
+    cnt('profiles'), cnt('applications')
+  ]);
+  A.jobs = jobs; A.comps = comps; A.reports = reps; A.users = users; A.apps = apps;
+  comps.forEach(c => CN[c.id] = c.name); jobs.forEach(j => JN[j.id] = j);
+}
+async function boot() {
+  const { data } = await sb.auth.getSession();
+  if (!data.session) return renderLogin();
+  const me = await q(sb.from('profiles').select('id,role,full_name,email').eq('id', data.session.user.id).maybeSingle());
+  if (!me || me.role !== 'admin') return renderDenied(data.session.user.email);
+  A.me = me;
+  try { await load(); } catch (e) { $('#root').innerHTML = '<div class="center">تعذّر تحميل البيانات: ' + esc(e.message) + '</div>'; return; }
+  render();
+}
+function renderLogin() {
+  $('#root').innerHTML = `<div class="center"><img src="logo.svg" alt=""><h2>وظيفتي · الإدارة</h2><p class="mut">هذه الصفحة لفريق الإدارة فقط.</p><button class="b" id="gl">الدخول بحساب Google</button></div>`;
+  $('#gl').onclick = async () => { const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } }); if (error) toast(error.message); };
+}
+function renderDenied(email) {
+  $('#root').innerHTML = `<div class="center"><img src="logo.svg" alt=""><h2>لا توجد صلاحية</h2><p class="mut">الحساب ${esc(email || '')} ليس حساب إدارة.</p><button class="b g" id="lo">تسجيل الخروج</button></div>`;
+  $('#lo').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+}
+const NAV = [['overview', 'نظرة عامة'], ['review', 'المراجعة'], ['companies', 'الشركات'], ['reports', 'البلاغات']];
+function badge(k) { return k === 'review' ? A.jobs.filter(j => j.status === 'pending').length + A.comps.filter(c => c.status === 'pending').length : k === 'reports' ? A.reports.filter(r => r.status === 'open').length : 0; }
+function render() {
+  const f = { overview: vOver, review: vReview, companies: vComps, reports: vReps }[A.view];
+  $('#root').innerHTML = `<header><img src="logo.svg" alt=""><div><b>وظيفتي · الإدارة</b><small>${esc(A.me.full_name || A.me.email || '')}</small></div><span class="sp"></span><button class="b g" data-a="refresh">تحديث</button><button class="b g" data-a="out">خروج</button></header>
+  <nav>${NAV.map(([k, n]) => `<button class="${A.view === k ? 'on' : ''}" data-a="nav" data-v="${k}">${n}${badge(k) ? `<span class="n">${badge(k)}</span>` : ''}</button>`).join('')}</nav><main>${f()}</main>`;
+}
+const st = { pending: ['بانتظار المراجعة', 'gold'], active: ['منشورة', 'ok'], paused: ['موقوفة', ''], closed: ['مغلقة', ''], rejected: ['مرفوضة', 'red'], expired: ['منتهية', ''], verified: ['موثّقة', 'ok'] };
+const chip = s => { const x = st[s] || [s, '']; return `<span class="chip ${x[1]}">${esc(x[0])}</span>`; };
+const cname = id => esc(CN[id] || '—');
+function vOver() {
+  const J = A.jobs, n = s => J.filter(j => j.status === s).length;
+  return `<h2>نظرة عامة</h2><div class="stats">${[['المستخدمون', A.users], ['الوظائف المنشورة', n('active')], ['وظائف بانتظار المراجعة', n('pending')], ['الشركات', A.comps.length], ['شركات بانتظار التوثيق', A.comps.filter(c => c.status === 'pending').length], ['طلبات التقديم', A.apps], ['بلاغات مفتوحة', A.reports.filter(r => r.status === 'open').length]].map(([l, v]) => `<div class="card stat"><b>${v}</b><span class="mut">${l}</span></div>`).join('')}</div>`;
+}
+function vReview() {
+  const p = A.jobs.filter(j => j.status === 'pending'), a = A.jobs.filter(j => j.status === 'active');
+  return `<h2>وظائف بانتظار المراجعة</h2>` + (p.length ? p.map(j => `<div class="card"><div class="row"><div class="sp"><h3>${esc(j.title)}</h3><div class="mut">${cname(j.company_id)} ${(A.comps.find(c => c.id === j.company_id) || {}).status === 'verified' ? '✓' : '(غير موثّقة)'} · ${esc(j.location || '')} · ${esc(j.salary_min || 0)}–${esc(j.salary_max || 0)} ${esc(j.currency || '')}</div></div><button class="b ok" data-a="job" data-v="${esc(j.id)}" data-s="active">نشر</button><button class="b r" data-a="job" data-v="${esc(j.id)}" data-s="rejected">رفض</button></div><p class="d">${esc(j.description || '')}</p></div>`).join('') : `<div class="card mut">لا توجد وظائف بانتظار المراجعة.</div>`)
+  + `<h2 style="margin-top:22px">الوظائف المنشورة (${a.length})</h2><div class="card tw"><table><tr><th>الوظيفة</th><th>الشركة</th><th>المدينة</th><th></th></tr>${a.map(j => `<tr><td>${esc(j.title)}${j.featured ? ' <span class="chip gold">مميزة</span>' : ''}</td><td>${cname(j.company_id)}</td><td>${esc(j.location || '')}</td><td style="white-space:nowrap"><button class="b g" data-a="feat" data-v="${esc(j.id)}" data-s="${j.featured ? 0 : 1}">${j.featured ? 'إلغاء التمييز' : 'تمييز'}</button> <button class="b g" data-a="job" data-v="${esc(j.id)}" data-s="paused">إيقاف</button></td></tr>`).join('')}</table></div>`;
+}
+function vComps() {
+  const o = { pending: 0, rejected: 1, verified: 2 }, l = [...A.comps].sort((a, b) => o[a.status] - o[b.status]);
+  return `<h2>الشركات والتوثيق</h2><div class="card tw"><table><tr><th>الشركة</th><th>السجل التجاري</th><th>المستند</th><th>الحالة</th><th></th></tr>${l.map(c => `<tr><td><b>${esc(c.name)}</b><div class="mut">${esc(c.location || '')} ${esc(c.phone || '')}</div></td><td>${esc(c.cr_number || '—')}</td><td>${c.cr_doc_path ? `<button class="b g" data-a="crdoc" data-v="${esc(c.id)}">عرض</button>` : '<span class="mut">لا يوجد</span>'}</td><td>${chip(c.status)}</td><td style="white-space:nowrap">${c.status === 'verified' ? `<button class="b g" data-a="comp" data-v="${esc(c.id)}" data-s="pending">إلغاء التوثيق</button>` : `<button class="b ok" data-a="comp" data-v="${esc(c.id)}" data-s="verified">توثيق</button>${c.status === 'pending' ? ` <button class="b r" data-a="comp" data-v="${esc(c.id)}" data-s="rejected">رفض</button>` : ''}`}</td></tr>`).join('')}</table></div>`;
+}
+function vReps() {
+  return `<h2>البلاغات</h2>` + (A.reports.length ? A.reports.map(r => { const j = JN[r.job_id]; return `<div class="card"><div class="row"><div class="sp"><h3>${esc(j ? j.title : '—')}</h3><div class="mut">${j ? cname(j.company_id) : ''} · السبب: ${esc(r.reason)}</div></div>${r.status === 'open' ? `<button class="b r" data-a="pause" data-v="${esc(r.job_id)}" data-r="${esc(r.id)}">إيقاف الوظيفة</button><button class="b g" data-a="rep" data-v="${esc(r.id)}" data-s="dismissed">تجاهل</button>` : `<span class="chip">${esc(r.status === 'resolved' ? 'تمت المعالجة' : 'تم التجاهل')}</span>`}</div></div>`; }).join('') : `<div class="card mut">لا توجد بلاغات.</div>`);
+}
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-a]'); if (!t || A.busy) return;
+  const a = t.dataset.a, v = t.dataset.v, s = t.dataset.s;
+  try {
+    A.busy = true;
+    if (a === 'nav') { A.view = v; render(); }
+    else if (a === 'out') { await sb.auth.signOut(); location.reload(); return; }
+    else if (a === 'refresh') { await load(); render(); toast('تم التحديث'); }
+    else if (a === 'job') { await q(sb.from('jobs').update({ status: s }).eq('id', v)); await load(); render(); toast(s === 'active' ? 'تم النشر وإشعار المناسبين' : 'تم'); }
+    else if (a === 'feat') { await q(sb.from('jobs').update({ featured: s === '1' }).eq('id', v)); await load(); render(); }
+    else if (a === 'comp') { await q(sb.from('companies').update({ status: s, reject_reason: s === 'rejected' ? 'بيانات السجل غير واضحة أو غير مطابقة' : null }).eq('id', v)); await load(); render(); toast('تم'); }
+    else if (a === 'pause') { await q(sb.from('jobs').update({ status: 'paused' }).eq('id', v)); if (t.dataset.r) await q(sb.from('reports').update({ status: 'resolved' }).eq('id', t.dataset.r)); await load(); render(); toast('تم إيقاف الوظيفة'); }
+    else if (a === 'rep') { await q(sb.from('reports').update({ status: s }).eq('id', v)); await load(); render(); }
+    else if (a === 'crdoc') { const c = A.comps.find(x => x.id === v); const { data } = await sb.storage.from('cr-docs').createSignedUrl(c.cr_doc_path, 900); if (data) window.open(data.signedUrl, '_blank'); else toast('تعذّر فتح المستند'); }
+  } catch (err) { toast('حدث خطأ: ' + (err.message || err)); }
+  finally { A.busy = false; }
+});
+sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN' && !A.me) boot(); });
+boot();
+</script>
+</body>
+</html>
