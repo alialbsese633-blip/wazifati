@@ -37,17 +37,16 @@ const NAVS = {
   guest: [['home', 'الوظائف', 'Jobs', '🔎'], ['login', 'دخول', 'Sign in', '👤']],
   seeker: [['home', 'الوظائف', 'Jobs', '🔎'], ['saved', 'المحفوظة', 'Saved', '♡'], ['apps', 'طلباتي', 'Applications', '📨'], ['inbox', 'الرسائل', 'Messages', '💬'], ['profile', 'ملفي', 'Profile', '👤'], ['cv', 'قوالب السيرة', 'CV templates', '📄'], ['alerts', 'التنبيهات', 'Alerts', '🔔']],
   employer: [['dash', 'لوحتي', 'Dashboard', '📊'], ['post', 'نشر وظيفة', 'Post job', '➕'], ['ejobs', 'وظائفي', 'My jobs', '💼'], ['applicants', 'المتقدمون', 'Applicants', '👥'], ['inbox', 'الرسائل', 'Messages', '💬'], ['company', 'شركتي', 'Company', '🏢']],
-  admin: [['overview', 'نظرة عامة', 'Overview', '📊'], ['review', 'المراجعة', 'Review', '🛡️'], ['companies', 'الشركات', 'Companies', '🏢'], ['reports', 'البلاغات', 'Reports', '⚠️']]
+  admin: [['home', 'الوظائف', 'Jobs', '🔎']],
 };
-const HOME = { guest: 'home', seeker: 'home', employer: 'dash', admin: 'overview' };
+const HOME = { guest: 'home', seeker: 'home', employer: 'dash', admin: 'home' };
 const VIEWS = {
   home: vHome, job: vJob, saved: vSaved, apps: vApps, inbox: vInbox, thread: vThread, profile: vProfile, cv: vCV, alerts: vAlerts,
   dash: vEDash, post: vPost, ejobs: vEJobs, applicants: vEApps, company: vCompanyForm,
-  overview: vAOver, review: vAReview, companies: vACompanies, reports: vAReports,
   settings: vSettings, legal: vLegal, login: vLogin, onboard: vOnboard, brand: vBrand
 };
-const NEEDS_LOGIN = ['saved', 'apps', 'inbox', 'thread', 'profile', 'cv', 'alerts', 'dash', 'post', 'ejobs', 'applicants', 'company', 'overview', 'review', 'companies', 'reports'];
-const ROLE_VIEWS = { seeker: ['saved', 'apps', 'profile', 'cv', 'alerts'], employer: ['dash', 'post', 'ejobs', 'applicants', 'company'], admin: ['overview', 'review', 'companies', 'reports'] };
+const NEEDS_LOGIN = ['saved', 'apps', 'inbox', 'thread', 'profile', 'cv', 'alerts', 'dash', 'post', 'ejobs', 'applicants', 'company'];
+const ROLE_VIEWS = { seeker: ['saved', 'apps', 'profile', 'cv', 'alerts'], employer: ['dash', 'post', 'ejobs', 'applicants', 'company'] };
 function go(view, params = {}, push = true) {
   if (push && S.view !== view) { S.prev.push({ view: S.view, jobId: S.jobId, appId: S.appId }); S.prev = S.prev.slice(-20); }
   Object.assign(S, params); S.view = view; render();
@@ -60,7 +59,7 @@ function requireLogin(after) {
 
 function renderShell() {
   const r = role(), items = NAVS[r] || NAVS.guest, un = unread();
-  $('#roles').innerHTML = REAL ? '' : [['seeker', 'باحث', 'Seeker'], ['employer', 'صاحب عمل', 'Employer'], ['admin', 'الإدارة', 'Admin']].map(([k, a, e]) => `<button class="${r === k ? 'on' : ''}" data-a="demorole" data-v="${k}">${L(a, e)}</button>`).join('');
+  $('#roles').innerHTML = REAL ? '' : [['seeker', 'باحث', 'Seeker'], ['employer', 'صاحب عمل', 'Employer']].map(([k, a, e]) => `<button class="${r === k ? 'on' : ''}" data-a="demorole" data-v="${k}">${L(a, e)}</button>`).join('');
   $('#langBtn').textContent = LANG === 'en' ? 'ع' : 'EN';
   $('#bellN').innerHTML = un ? `<b>${un}</b>` : '';
   $('#bell').style.display = Store.isLoggedIn() ? '' : 'none';
@@ -306,29 +305,6 @@ function vCompanyForm() {
 }
 
 /* =====================================================
-   الإدارة
-   ===================================================== */
-function vAOver() {
-  const live = activeJobs(), mx = Math.max(1, ...CATS.map(c => live.filter(j => j.cat === c.id).length));
-  return `<h2>${L('نظرة عامة على المنصة', 'Platform overview')}</h2><div class="stats"><div class="card stat"><b>${D.jobs.length}</b><span class="mut">${L('إجمالي الوظائف', 'total jobs')}</span></div><div class="card stat"><b>${D.jobs.filter(j => j.status === 'pending').length}</b><span class="mut">${L('بانتظار المراجعة', 'pending')}</span></div><div class="card stat"><b>${D.companies.length}</b><span class="mut">${L('شركات', 'companies')}</span></div><div class="card stat"><b>${D.companies.filter(c => c.status === 'pending').length}</b><span class="mut">${L('شركات بانتظار التوثيق', 'awaiting verification')}</span></div><div class="card stat"><b>${D.reports.filter(r => r.status === 'open').length}</b><span class="mut">${L('بلاغات مفتوحة', 'open reports')}</span></div></div>
-  <div class="card"><h3 style="margin-bottom:8px">${L('الوظائف المنشورة حسب التخصص', 'Live jobs by category')}</h3>${CATS.map(c => { const n = live.filter(j => j.cat === c.id).length; return `<div class="row" style="margin:5px 0"><span style="width:150px">${esc(LANG === 'en' ? c.en : c.ar)}</span><div class="bar sp"><i style="width:${n / mx * 100}%"></i></div><b>${n}</b></div>`; }).join('')}</div>`;
-}
-function riskChip(j) { const r = localFraud(j); return `<span class="chip ${r.risk >= 50 ? 'red' : r.risk >= 20 ? 'gold' : ''}">${L('خطر', 'Risk')} ${r.risk}%</span>`; }
-function vAReview() {
-  const p = D.jobs.filter(j => j.status === 'pending'), a = activeJobs();
-  return `<h2>${L('وظائف بانتظار المراجعة', 'Jobs awaiting review')}</h2>` + (p.length ? p.map(j => `<div class="card" style="margin-bottom:10px"><div class="row"><div class="sp"><h3>${esc(j.title)}</h3><div class="mut">${esc(company(j.company).name)} ${company(j.company).status === 'verified' ? '✓' : '(' + L('غير موثّقة', 'unverified') + ')'} · ${esc(nm(LOCS, j.loc))} · ${esc(sal(j))}</div></div>${riskChip(j)}
-  <button class="btn ai sm" data-a="aifraud" data-v="${esc(j.id)}">✦ ${L('فحص ذكي', 'AI check')}</button><button class="btn sm" data-a="approve" data-v="${esc(j.id)}">${L('نشر', 'Publish')}</button><button class="btn red sm" data-a="reject" data-v="${esc(j.id)}">${L('رفض', 'Reject')}</button></div><p style="margin-top:8px">${esc(j.desc)}</p><div class="aibox" id="fr${esc(j.id)}" style="display:none"></div></div>`).join('') : `<div class="empty card">${L('لا توجد وظائف معلقة 🎉', 'Nothing pending 🎉')}</div>`) +
-  `<h2 style="margin-top:20px">${L('الوظائف المنشورة', 'Live jobs')}</h2><div class="card tw"><table><tr><th>${L('الوظيفة', 'Job')}</th><th>${L('الشركة', 'Company')}</th><th>${L('المدينة', 'City')}</th><th></th></tr>${a.map(j => `<tr><td>${esc(j.title)}</td><td>${esc(company(j.company).name)}</td><td>${esc(nm(LOCS, j.loc))}</td><td style="white-space:nowrap"><button class="btn ghost sm" data-a="feat" data-v="${esc(j.id)}">${j.feat ? L('إلغاء التمييز', 'Unfeature') : '★ ' + L('تمييز', 'Feature')}</button> <button class="btn red sm" data-a="pausejob" data-v="${esc(j.id)}">${L('إيقاف', 'Pause')}</button></td></tr>`).join('')}</table></div>`;
-}
-function vACompanies() {
-  const order = { pending: 0, rejected: 1, verified: 2 }, l = [...D.companies].sort((a, b) => order[a.status] - order[b.status]);
-  return `<h2>${L('الشركات والتوثيق', 'Companies & verification')}</h2><div class="card tw"><table><tr><th>${L('الشركة', 'Company')}</th><th>${L('السجل التجاري', 'Reg. no.')}</th><th>${L('المستند', 'Document')}</th><th>${L('التقييم / الرد', 'Rating / response')}</th><th>${L('الحالة', 'Status')}</th></tr>${l.map(c => { const st = companyStats(c);
-    return `<tr><td><b>${esc(c.name)}</b><div class="mut">${esc(nm(LOCS, c.loc))} · ${esc(c.about || '')}</div></td><td>${esc(c.cr || '—')}</td><td>${c.crDoc ? `<button class="btn ghost sm" data-a="crdoc" data-v="${esc(c.id)}">${L('عرض', 'View')}</button>` : `<span class="mut">${L('لا يوجد', 'None')}</span>`}</td><td>${st.count ? '★ ' + st.rating.toFixed(1) : '—'} / ${st.resp ?? '—'}${st.resp !== null ? '%' : ''}</td>
-    <td style="white-space:nowrap">${c.status === 'verified' ? `<span class="chip">✓</span> <button class="btn ghost sm" data-a="vcomp" data-v="${esc(c.id)}" data-s="pending">${L('إلغاء', 'Revoke')}</button>` : `<button class="btn gold sm" data-a="vcomp" data-v="${esc(c.id)}" data-s="verified">${L('توثيق', 'Verify')}</button> ${c.status === 'pending' ? `<button class="btn red sm" data-a="vcomp" data-v="${esc(c.id)}" data-s="rejected">${L('رفض', 'Decline')}</button>` : `<span class="chip red">${L('مرفوضة', 'Declined')}</span>`}`}</td></tr>`; }).join('')}</table></div>`;
-}
-function vAReports() { return `<h2>${L('البلاغات', 'Reports')}</h2>` + (D.reports.length ? D.reports.map(r => { const j = job(r.job); return `<div class="card row" style="margin-bottom:8px"><div class="sp"><h3>${esc(j ? j.title : '—')}</h3><div class="mut">${j ? esc(company(j.company).name) : ''} · ${L('السبب', 'Reason')}: ${esc(r.reason)}</div></div>${r.status === 'open' ? `<button class="btn red sm" data-a="pausejob" data-v="${esc(r.job)}" data-r="${esc(r.id)}">${L('إيقاف الوظيفة', 'Pause job')}</button><button class="btn ghost sm" data-a="dismiss" data-v="${esc(r.id)}">${L('تجاهل', 'Dismiss')}</button>` : `<span class="chip gray">${L('تمت المعالجة', 'Handled')}</span>`}</div>`; }).join('') : `<div class="empty card">${L('لا توجد بلاغات.', 'No reports.')}</div>`); }
-
-/* =====================================================
    الحساب، الدخول، السياسات، الهوية
    ===================================================== */
 function vLogin() {
@@ -519,8 +495,6 @@ async function act(t, e) {
       try { fillJobForm(await AI.run('jobad', { title, loc: $('#n_loc').value })); toast(L('جهّز المساعد الإعلان، راجعه وعدّل ما تريد', 'Draft ready, review and edit')); } finally { S.busy = false; t.disabled = false; t.textContent = lbl; } return; }
     case 'usetpl': fillJobForm(JOB_TEMPLATES[+v]); $('#n_title').value = JOB_TEMPLATES[+v].title; toast(L('تم تعبئة القالب', 'Template applied')); return;
     case 'aishort': { const jid = S.empJob !== 'all' ? S.empJob : (myJobs().find(j => D.apps.some(x => x.job === j.id)) || {}).id; if (!jid) { toast(L('لا يوجد متقدمون', 'No applicants')); return; } $('#shortbox').style.display = 'block'; aiInto($('#aiout'), 'shortlist', { j: job(jid), apps: D.apps.filter(x => x.job === jid) }); return; }
-    case 'aifraud': { const j = job(v), box = $('#fr' + v); box.style.display = 'block'; box.innerHTML = `<span class="dots mut">${L('يفحص الإعلان', 'Checking')}</span>`; const r = await AI.run('fraud', { j });
-      box.innerHTML = `<div class="row"><span class="chip ai">✦ ${L('نتيجة الفحص', 'Result')}</span><span class="chip ${+r.risk >= 50 ? 'red' : +r.risk >= 20 ? 'gold' : ''}">${esc(r.level)} (${+r.risk || 0}%)</span></div><ul style="margin:8px 0;padding-inline-start:20px">${(r.reasons || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul><b>${L('التوصية', 'Advice')}:</b> ${esc(r.advice || '')}`; return; }
     case 'report': if (!requireLogin()) return; modal(`<h3>${L('الإبلاغ عن إعلان مخالف', 'Report this job')}</h3><div class="field" style="margin-top:10px"><select id="rp_r">${[L('طلب رسوم قبل التوظيف', 'Asked for fees'), L('إعلان وهمي', 'Fake job'), L('معلومات مضللة', 'Misleading info'), L('محتوى غير لائق', 'Inappropriate content')].map(x => `<option>${x}</option>`).join('')}</select></div><div class="row"><button class="btn red" data-a="sendreport" data-v="${esc(v)}">${L('إرسال البلاغ', 'Send report')}</button><button class="btn ghost" data-a="closemodal">${L('إلغاء', 'Cancel')}</button></div>`); return;
     case 'sendreport': await Store.report(v, $('#rp_r').value); closeModal(); toast(L('وصل بلاغك للإدارة، شكراً لك', 'Report sent, thank you')); renderShell(); return;
     case 'apply': {
@@ -566,13 +540,6 @@ async function act(t, e) {
     case 'rate': rateModal(v); return;
     case 'star': { const box = $('#rate'); box.dataset.r = v; box.querySelectorAll('button').forEach((b, i) => b.classList.toggle('on', i < +v)); return; }
     case 'sendrate': { const r = +$('#rate').dataset.r; if (!r) { toast(L('اختر عدد النجوم', 'Pick a rating')); return; } await Store.review(v, r, $('#rvc').value.trim()); closeModal(); toast(L('شكراً لتقييمك ★', 'Thanks for rating ★')); render(); return; }
-    case 'approve': await Store.adminSetJob(v, { status: 'active' }); toast(L('تم نشر الوظيفة وإشعار المناسبين لها', 'Published and matching seekers notified')); render(); return;
-    case 'reject': await Store.adminSetJob(v, { status: 'rejected' }); render(); return;
-    case 'feat': await Store.adminSetJob(v, { feat: !job(v).feat }); render(); return;
-    case 'pausejob': await Store.adminSetJob(v, { status: 'paused' }); if (t.dataset.r) await Store.resolveReport(t.dataset.r, 'resolved'); toast(L('تم إيقاف الوظيفة', 'Job paused')); render(); return;
-    case 'dismiss': await Store.resolveReport(v, 'dismissed'); render(); return;
-    case 'vcomp': { let reason = ''; if (t.dataset.s === 'rejected') { reason = L('بيانات السجل غير واضحة أو غير مطابقة', 'Registration details unclear or mismatched'); } await Store.verifyCompany(v, t.dataset.s, reason); render(); return; }
-    case 'crdoc': { const c = company(v); if (!REAL) { toast(L('في الوضع التجريبي: ', 'Demo: ') + (c.crDoc || '')); return; } const u = await Store.fileUrl('cr-docs', c.crDoc); if (u) window.open(u, '_blank'); return; }
     case 'google': try { await Store.google(); } catch (err) { toast(L('تعذّر الدخول: ', 'Sign-in failed: ') + (err.message || '')); } return;
     case 'otpsend': { const ph = $('#phone').value.replace(/[\s-]/g, ''); S.phone = ph.startsWith('+') ? ph : '+967' + ph.replace(/^0+/, ''); if (S.phone.length < 10) { toast(L('رقم غير صحيح', 'Invalid number')); return; } try { await Store.phoneSend(S.phone); S.otpSent = true; render(); } catch (err) { toast(L('تعذّر الإرسال: ', 'Could not send: ') + (err.message || '')); } return; }
     case 'otpverify': try { await Store.phoneVerify(S.phone, $('#otp').value.trim()); S.otpSent = false; } catch (err) { toast(L('الرمز غير صحيح', 'Wrong code')); } return;

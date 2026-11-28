@@ -10,63 +10,97 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--g:#2A1A52;--g2:#120A26;--g3:#2E1D5C;--gl:#EEE9FB;--gold:#C8F135;--goldl:#F3FCD6;--coral:#FF6B4A;--bg:#F6F4FB;--ink:#1B1035;--mut:#6E6889;--line:#E6E1F2;--card:#fff;--red:#B3402F;--redl:#FBE9E5;--ok:#3F5205;--sh:0 1px 2px rgba(30,16,60,.05),0 6px 20px rgba(30,16,60,.06)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'Tajawal',system-ui,sans-serif;line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;background:var(--bg);color:var(--ink);font-family:'Tajawal',system-ui,sans-serif;line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased}
 header{background:linear-gradient(135deg,var(--g3),var(--g2));color:#fff;position:sticky;top:0;z-index:30;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px}
 header img{width:38px;height:38px;border-radius:11px}header b{font-size:18px;font-weight:800}
 .badge{background:var(--coral);color:#fff;border-radius:20px;padding:1px 10px;font-size:12px;font-weight:700;margin-inline-start:8px;vertical-align:middle}
-header small{color:#cfc6ee;display:block;font-size:12px;line-height:1.2}
-.sp{flex:1}
-nav{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:calc(58px + env(safe-area-inset-top));z-index:20}
-nav button{background:transparent;border:0;color:var(--mut);padding:8px 16px;border-radius:11px;cursor:pointer;font:inherit;font-weight:700;white-space:nowrap}
-nav button.on{background:var(--g);color:#fff}
-nav .n{background:var(--coral);color:#fff;border-radius:99px;padding:0 7px;font-size:12px;margin-inline-start:6px}
-main{max-width:1100px;margin:0 auto;padding:18px 16px 40px}h2{margin:6px 0 14px;font-weight:800}h3{margin:0;font-weight:700}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:var(--sh)}
+header small{color:#cfc6ee;display:block;font-size:12px;line-height:1.2}.sp{flex:1}
+nav{display:flex;gap:4px;padding:8px 12px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:calc(58px + env(safe-area-inset-top));z-index:20}
+nav button{background:transparent;border:0;color:var(--mut);padding:8px 14px;border-radius:11px;cursor:pointer;font:inherit;font-weight:700;white-space:nowrap}
+nav button.on{background:var(--g);color:#fff}nav .n{background:var(--coral);color:#fff;border-radius:99px;padding:0 7px;font-size:12px;margin-inline-start:6px}
+main{max-width:1100px;margin:0 auto;padding:18px 14px 60px}h2{margin:6px 0 12px;font-weight:800}h3{margin:0;font-weight:700}h4{margin:16px 0 8px;font-weight:800;color:var(--g)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.card.click{cursor:pointer;transition:.15s}.card.click:hover{border-color:var(--g);transform:translateY(-1px)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.mut{color:var(--mut);font-size:13px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
-.stat{border-top:4px solid var(--gold)}.stat b{display:block;font-size:32px;color:var(--g);font-weight:800;line-height:1.2}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat{border-top:4px solid var(--gold);cursor:pointer}.stat.warn{border-top-color:var(--coral)}.stat b{display:block;font-size:30px;color:var(--g);font-weight:800;line-height:1.2}
 button.b{background:var(--g);color:#fff;border:0;border-radius:11px;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer;transition:.15s}
-button.b:hover{filter:brightness(1.15)}
-button.b.g{background:#fff;color:var(--g);border:1px solid var(--g)}button.b.g:hover{background:var(--gl)}
-button.b.r{background:var(--red)}button.b.ok{background:var(--gold);color:var(--ink)}
-header button.b.g{background:transparent;color:#fff;border-color:#ffffff55}
-button.b:disabled{opacity:.5}
+button.b:hover{filter:brightness(1.15)}button.b.g{background:#fff;color:var(--g);border:1px solid var(--g)}button.b.g:hover{background:var(--gl)}
+button.b.r{background:var(--red)}button.b.ok{background:var(--gold);color:var(--ink)}button.b.sm{padding:4px 11px;font-size:13px}
+header button.b.g{background:transparent;color:#fff;border-color:#ffffff55}button.b:disabled{opacity:.5}
+a.b{background:#fff;color:var(--g);border:1px solid var(--g);border-radius:11px;padding:6px 14px;font-weight:700;text-decoration:none;display:inline-block;font-size:14px}
 .chip{display:inline-block;background:var(--gl);color:var(--g2);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:500;white-space:nowrap}
 .chip.ok{background:var(--goldl);color:var(--ok)}.chip.red{background:var(--redl);color:var(--red)}.chip.gold{background:#FFF3D6;color:#7a5600}
-table{width:100%;border-collapse:collapse}th,td{text-align:start;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-weight:700;font-size:13px}
-.tw{overflow-x:auto}.center{max-width:420px;margin:12vh auto;text-align:center;padding:0 16px}.center img{width:96px;border-radius:26px}
+table{width:100%;border-collapse:collapse}th,td{text-align:start;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-weight:700;font-size:13px}
+tr.click{cursor:pointer}tr.click:hover{background:var(--gl)}.tw{overflow-x:auto}
+.center{max-width:420px;margin:12vh auto;text-align:center;padding:0 16px}.center img{width:96px;border-radius:26px}
 .toast{position:fixed;bottom:18px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--g2);color:#fff;padding:10px 18px;border-radius:12px;z-index:99}
-p.d{margin:8px 0 0;white-space:pre-wrap}
+p.d{margin:6px 0 0;white-space:pre-wrap}
+input.s,select.s{font:inherit;border:1px solid var(--line);border-radius:11px;padding:8px 12px;background:#fff;min-width:0}input.s{flex:1;min-width:160px}
+.ov{position:fixed;inset:0;background:rgba(18,10,38,.55);z-index:60;display:flex;justify-content:center;align-items:flex-end;overflow:auto}
+.md{background:var(--bg);width:100%;max-width:760px;border-radius:22px 22px 0 0;max-height:94vh;overflow:auto;padding:0 16px 16px}
+@media(min-width:800px){.ov{align-items:center}.md{border-radius:22px}}
+.mh{position:sticky;top:0;background:var(--bg);padding:14px 0 8px;display:flex;gap:10px;align-items:flex-start;z-index:2}.mh h3{flex:1;font-size:19px}
+.x{background:#fff;border:1px solid var(--line);border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:4px 10px;font-size:14px}.kv>span:nth-child(odd){color:var(--mut)}.kv>span{word-break:break-word}
+.bar{position:sticky;bottom:0;background:var(--bg);padding:10px 0 2px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:14px}
+.flag{background:var(--redl);color:var(--red);border-radius:10px;padding:6px 10px;margin:4px 0;font-size:13px}.flag.ok{background:var(--goldl);color:var(--ok)}
+.av{width:42px;height:42px;border-radius:50%;background:var(--g);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none}
 </style>
 </head>
 <body>
 <div id="root"><div class="center mut">جارٍ التحميل…</div></div>
+<div id="modal"></div>
 <script src="../js/config.js"></script>
 <script src="../js/vendor/supabase.js"></script>
 <script>
 const CFG = window.WAZIFATI_CONFIG;
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const SCHEME = 'com.wazifati.admin';
 const IS_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 function plug(n) { const C = window.Capacitor; return (C.Plugins && C.Plugins[n]) || C.registerPlugin(n); }
-const A = { view: 'overview', me: null, jobs: [], comps: [], reports: [], users: 0, apps: 0, busy: false };
-const CN = {}, JN = {};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const A = { view: 'overview', me: null, jobs: [], comps: [], reports: [], profiles: [], apps: [], busy: false, f: { jq: '', js: '', uq: '', ur: '', cq: '' }, updated: null, pend: -1 };
+const P = {}, C = {}, J = {};
+const LOC = { sanaa: 'صنعاء', aden: 'عدن', taiz: 'تعز', hodeidah: 'الحديدة', ibb: 'إب', mukalla: 'المكلا', seiyun: 'سيئون', dhamar: 'ذمار', marib: 'مأرب', ataq: 'عتق', ghaydah: 'الغيضة', lahj: 'لحج', abyan: 'أبين', bayda: 'البيضاء', hajjah: 'حجة', saada: 'صعدة', amran: 'عمران', dhale: 'الضالع', socotra: 'سقطرى', remote: 'عن بعد' };
+const CAT = { accounting: 'محاسبة ومالية', admin: 'إدارة وسكرتارية', sales: 'مبيعات وتسويق', hospitality: 'فنادق ومطاعم', engineering: 'هندسة وفنيون', it: 'تقنية معلومات', education: 'تعليم وتدريب', health: 'صحة وتمريض', ngo: 'منظمات وتنمية', transport: 'نقل وتوصيل', support: 'خدمة عملاء', gigs: 'أعمال مؤقتة' };
+const TYP = { full_time: 'دوام كامل', part_time: 'دوام جزئي', contract: 'عقد مؤقت', internship: 'تدريب' };
+const ROLE = { seeker: 'باحث عن عمل', employer: 'صاحب عمل', admin: 'إدارة' };
+const CUR = { YER: 'ر.ي', USD: '$', SAR: 'ر.س' };
+const ST = { pending: ['بانتظار المراجعة', 'gold'], active: ['منشورة', 'ok'], paused: ['موقوفة', ''], closed: ['مغلقة', ''], rejected: ['مرفوضة', 'red'], expired: ['منتهية', ''], verified: ['موثّقة', 'ok'], open: ['مفتوح', 'gold'], resolved: ['تمت المعالجة', 'ok'], dismissed: ['تم التجاهل', ''] };
+const chip = s => { const x = ST[s] || [s, '']; return `<span class="chip ${x[1]}">${esc(x[0])}</span>`; };
+const loc = x => esc(LOC[x] || x || '—'), cat = x => esc(CAT[x] || x || '—');
+const num = n => Math.round(+n || 0).toLocaleString('en-US');
+const dt = t => t ? new Date(t).toLocaleString('ar-YE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+const ago = t => { if (!t) return '—'; const m = Math.floor((Date.now() - new Date(t)) / 6e4); return m < 1 ? 'الآن' : m < 60 ? `قبل ${m} دقيقة` : m < 1440 ? `قبل ${Math.floor(m / 60)} ساعة` : `قبل ${Math.floor(m / 1440)} يوم`; };
+const salary = j => j.salary_min || j.salary_max ? `${num(j.salary_min)}–${num(j.salary_max)} ${CUR[j.currency] || ''}${j.is_gig ? ' / يوم' : ' / شهر'}` : 'غير محدد';
 function toast(m) { document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3500); }
 async function q(p) { const { data, error } = await p; if (error) throw error; return data; }
-async function cnt(t) { const { count } = await sb.from(t).select('*', { count: 'exact', head: true }); return count || 0; }
+function digits(ph) { let d = String(ph || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (/^7\d{8}$/.test(d)) d = '967' + d; return d; }
+function contact(ph, email) {
+  const d = digits(ph); const b = [];
+  if (ph) b.push(`<a class="b" href="tel:${esc(ph)}">اتصال</a>`);
+  if (d) b.push(`<a class="b" target="_blank" rel="noopener" href="https://wa.me/${d}">واتساب</a>`);
+  if (email) b.push(`<a class="b" href="mailto:${esc(email)}">بريد</a>`);
+  return b.join(' ');
+}
 
 async function load() {
-  const [jobs, comps, reps, users, apps] = await Promise.all([
-    q(sb.from('jobs').select('*').order('created_at', { ascending: false }).limit(800)),
+  const [jobs, comps, reps, profs, apps] = await Promise.all([
+    q(sb.from('jobs').select('*').order('created_at', { ascending: false }).limit(1000)),
     q(sb.from('companies').select('*').order('created_at', { ascending: false }).limit(2000)),
     q(sb.from('reports').select('*').order('created_at', { ascending: false }).limit(300)),
-    cnt('profiles'), cnt('applications')
+    q(sb.from('profiles').select('*').order('created_at', { ascending: false }).limit(3000)),
+    q(sb.from('applications').select('id,job_id,seeker_id,status,created_at').order('created_at', { ascending: false }).limit(5000))
   ]);
-  A.jobs = jobs; A.comps = comps; A.reports = reps; A.users = users; A.apps = apps;
-  comps.forEach(c => CN[c.id] = c.name); jobs.forEach(j => JN[j.id] = j);
+  A.jobs = jobs; A.comps = comps; A.reports = reps; A.profiles = profs; A.apps = apps; A.updated = new Date();
+  for (const k of [P, C, J]) for (const x in k) delete k[x];
+  profs.forEach(x => P[x.id] = x); comps.forEach(x => C[x.id] = x); jobs.forEach(x => J[x.id] = x);
 }
+const ownerOf = j => { const c = C[j.company_id]; return c ? P[c.owner_id] : null; };
+const pendingCount = () => A.jobs.filter(j => j.status === 'pending').length + A.comps.filter(c => c.status === 'pending').length;
+
 async function boot() {
   const { data } = await sb.auth.getSession();
   if (!data.session) return renderLogin();
@@ -74,7 +108,14 @@ async function boot() {
   if (!me || me.role !== 'admin') return renderDenied(data.session.user.email);
   A.me = me;
   try { await load(); } catch (e) { $('#root').innerHTML = '<div class="center">تعذّر تحميل البيانات: ' + esc(e.message) + '</div>'; return; }
-  render();
+  A.pend = pendingCount(); render();
+  setInterval(autoRefresh, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) autoRefresh(); });
+}
+async function autoRefresh() {
+  if (document.hidden || A.busy || $('#modal').innerHTML) return;
+  try { await load(); } catch (e) { return; }
+  const n = pendingCount(); if (A.pend >= 0 && n > A.pend) toast('وصل عنصر جديد بانتظار المراجعة'); A.pend = n; render(true);
 }
 function renderLogin() {
   $('#root').innerHTML = `<div class="center"><img src="../assets/brand/mark-lime.svg" alt=""><h2>وظيفتي <span class="badge">الإدارة</span></h2><p class="mut">هذه الصفحة لفريق الإدارة فقط.</p><button class="b" id="gl">الدخول بحساب Google</button></div>`;
@@ -93,46 +134,136 @@ function renderDenied(email) {
   $('#root').innerHTML = `<div class="center"><img src="../assets/brand/mark-lime.svg" alt=""><h2>لا توجد صلاحية</h2><p class="mut">الحساب ${esc(email || '')} ليس حساب إدارة.</p><button class="b g" id="lo">تسجيل الخروج</button></div>`;
   $('#lo').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 }
-const NAV = [['overview', 'نظرة عامة'], ['review', 'المراجعة'], ['companies', 'الشركات'], ['reports', 'البلاغات']];
-function badge(k) { return k === 'review' ? A.jobs.filter(j => j.status === 'pending').length + A.comps.filter(c => c.status === 'pending').length : k === 'reports' ? A.reports.filter(r => r.status === 'open').length : 0; }
-function render() {
-  const f = { overview: vOver, review: vReview, companies: vComps, reports: vReps }[A.view];
-  $('#root').innerHTML = `<header><img src="../assets/brand/mark-lime.svg" alt=""><div><b>وظيفتي<span class="badge">الإدارة</span></b><small>${esc(A.me.full_name || A.me.email || '')}</small></div><span class="sp"></span><button class="b g" data-a="refresh">تحديث</button><button class="b g" data-a="out">خروج</button></header>
-  <nav>${NAV.map(([k, n]) => `<button class="${A.view === k ? 'on' : ''}" data-a="nav" data-v="${k}">${n}${badge(k) ? `<span class="n">${badge(k)}</span>` : ''}</button>`).join('')}</nav><main>${f()}</main>`;
+const NAV = [['overview', 'نظرة عامة'], ['review', 'المراجعة'], ['jobs', 'الوظائف'], ['companies', 'الشركات'], ['users', 'المستخدمون'], ['reports', 'البلاغات']];
+const badgeN = k => k === 'review' ? pendingCount() : k === 'reports' ? A.reports.filter(r => r.status === 'open').length : 0;
+function render(keepScroll) {
+  const y = window.scrollY, ae = document.activeElement, aid = ae && ae.id, pos = ae && ae.selectionStart;
+  const f = { overview: vOver, review: vReview, jobs: vJobs, companies: vComps, users: vUsers, reports: vReps }[A.view];
+  $('#root').innerHTML = `<header><img src="../assets/brand/mark-lime.svg" alt=""><div><b>وظيفتي<span class="badge">الإدارة</span></b><small>${esc(A.me.full_name || A.me.email || '')} · آخر تحديث ${A.updated ? A.updated.toLocaleTimeString('ar-YE', { hour: '2-digit', minute: '2-digit' }) : ''}</small></div><span class="sp"></span><button class="b g" data-a="refresh">تحديث</button><button class="b g" data-a="out">خروج</button></header>
+  <nav>${NAV.map(([k, n]) => `<button class="${A.view === k ? 'on' : ''}" data-a="nav" data-v="${k}">${n}${badgeN(k) ? `<span class="n">${badgeN(k)}</span>` : ''}</button>`).join('')}</nav><main>${f()}</main>`;
+  document.title = (pendingCount() ? `(${pendingCount()}) ` : '') + 'وظيفتي · الإدارة';
+  if (keepScroll) window.scrollTo(0, y);
+  if (aid) { const e = document.getElementById(aid); if (e) { e.focus(); try { e.setSelectionRange(pos, pos); } catch (x) {} } }
 }
-const st = { pending: ['بانتظار المراجعة', 'gold'], active: ['منشورة', 'ok'], paused: ['موقوفة', ''], closed: ['مغلقة', ''], rejected: ['مرفوضة', 'red'], expired: ['منتهية', ''], verified: ['موثّقة', 'ok'] };
-const chip = s => { const x = st[s] || [s, '']; return `<span class="chip ${x[1]}">${esc(x[0])}</span>`; };
-const cname = id => esc(CN[id] || '—');
+/* ---------- تنبيهات تلقائية على الوظيفة ---------- */
+function flags(j) {
+  const c = C[j.company_id], o = ownerOf(j), f = [];
+  if (!c) f.push('الشركة غير موجودة'); else {
+    if (c.status !== 'verified') f.push('الشركة غير موثّقة');
+    if (!c.cr_doc_path) f.push('لا يوجد مستند سجل تجاري مرفوع');
+  }
+  const d = j.description || '';
+  if (/(\+?\d[\d\s-]{7,}\d)/.test(d) || /(whatsapp|واتس|t\.me|telegram|تلجرام|تليجرام)/i.test(d)) f.push('الوصف يحتوي رقم أو رابط تواصل (قد يكون إعلاناً وهمياً)');
+  if (d.length < 40) f.push('الوصف قصير جداً');
+  if (/(رسوم|مقابل مبلغ|ادفع|تحويل مبلغ|تأمين)/.test(d + (j.title || ''))) f.push('كلمات مرتبطة بطلب مال من الباحث');
+  if (j.salary_min && j.salary_max && j.salary_max > j.salary_min * 8) f.push('فرق كبير بين الحد الأدنى والأعلى للراتب');
+  if (o && Date.now() - new Date(o.created_at) < 864e5) f.push('حساب الناشر جديد (أقل من 24 ساعة)');
+  if (c && A.jobs.some(x => x.id !== j.id && x.company_id === j.company_id && x.title === j.title)) f.push('وظيفة بنفس العنوان منشورة من الشركة نفسها');
+  return f;
+}
+const riskChip = j => { const n = flags(j).length; return `<span class="chip ${n >= 3 ? 'red' : n ? 'gold' : 'ok'}">${n ? n + ' تنبيه' : 'بلا تنبيهات'}</span>`; };
+/* ---------- الصفحات ---------- */
+function jobCard(j) {
+  const o = ownerOf(j), c = C[j.company_id];
+  return `<div class="card click" data-a="jobd" data-v="${esc(j.id)}"><div class="row"><div class="sp"><h3>${esc(j.title)}</h3><div class="mut">${esc(c ? c.name : '—')} ${c && c.status === 'verified' ? '✓' : '(غير موثّقة)'} · ${loc(j.location)} · ${esc(salary(j))}</div><div class="mut">الناشر: ${esc(o ? (o.full_name || o.email || '—') : '—')} ${o && o.phone ? '· ' + esc(o.phone) : ''} · ${ago(j.created_at)}</div></div>${riskChip(j)} ${chip(j.status)}</div></div>`;
+}
 function vOver() {
-  const J = A.jobs, n = s => J.filter(j => j.status === s).length;
-  return `<h2>نظرة عامة</h2><div class="stats">${[['المستخدمون', A.users], ['الوظائف المنشورة', n('active')], ['وظائف بانتظار المراجعة', n('pending')], ['الشركات', A.comps.length], ['شركات بانتظار التوثيق', A.comps.filter(c => c.status === 'pending').length], ['طلبات التقديم', A.apps], ['بلاغات مفتوحة', A.reports.filter(r => r.status === 'open').length]].map(([l, v]) => `<div class="card stat"><b>${v}</b><span class="mut">${l}</span></div>`).join('')}</div>`;
+  const J2 = A.jobs, n = s => J2.filter(j => j.status === s).length, byRole = r => A.profiles.filter(p => p.role === r).length;
+  const pj = n('pending'), pc = A.comps.filter(c => c.status === 'pending').length, rp = A.reports.filter(r => r.status === 'open').length;
+  const tile = (l, v, go, warn) => `<div class="card stat ${warn && v ? 'warn' : ''}" data-a="nav" data-v="${go}"><b>${v}</b><span class="mut">${l}</span></div>`;
+  const recent = [...A.profiles.slice(0, 5).map(p => ({ t: p.created_at, x: `انضم ${esc(p.full_name || p.email || 'مستخدم')} (${esc(ROLE[p.role] || 'لم يختر نوع الحساب')})` })), ...A.jobs.slice(0, 5).map(j => ({ t: j.created_at, x: `وظيفة جديدة: ${esc(j.title)}` })), ...A.apps.slice(0, 5).map(a => ({ t: a.created_at, x: `طلب تقديم على «${esc((J[a.job_id] || {}).title || '—')}»` }))].sort((a, b) => new Date(b.t) - new Date(a.t)).slice(0, 10);
+  return `<h2>نظرة عامة</h2><div class="stats">${tile('وظائف بانتظار المراجعة', pj, 'review', 1)}${tile('شركات بانتظار التوثيق', pc, 'review', 1)}${tile('بلاغات مفتوحة', rp, 'reports', 1)}${tile('وظائف منشورة', n('active'), 'jobs')}${tile('مستخدمون', A.profiles.length, 'users')}${tile('باحثون عن عمل', byRole('seeker'), 'users')}${tile('أصحاب عمل', byRole('employer'), 'users')}${tile('الشركات', A.comps.length, 'companies')}${tile('طلبات التقديم', A.apps.length, 'jobs')}</div>
+  <h4>آخر النشاط</h4><div class="card">${recent.length ? recent.map(r => `<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span class="sp">${r.x}</span><span class="mut">${ago(r.t)}</span></div>`).join('') : '<span class="mut">لا يوجد نشاط بعد.</span>'}</div>`;
 }
 function vReview() {
-  const p = A.jobs.filter(j => j.status === 'pending'), a = A.jobs.filter(j => j.status === 'active');
-  return `<h2>وظائف بانتظار المراجعة</h2>` + (p.length ? p.map(j => `<div class="card"><div class="row"><div class="sp"><h3>${esc(j.title)}</h3><div class="mut">${cname(j.company_id)} ${(A.comps.find(c => c.id === j.company_id) || {}).status === 'verified' ? '✓' : '(غير موثّقة)'} · ${esc(j.location || '')} · ${esc(j.salary_min || 0)}–${esc(j.salary_max || 0)} ${esc(j.currency || '')}</div></div><button class="b ok" data-a="job" data-v="${esc(j.id)}" data-s="active">نشر</button><button class="b r" data-a="job" data-v="${esc(j.id)}" data-s="rejected">رفض</button></div><p class="d">${esc(j.description || '')}</p></div>`).join('') : `<div class="card mut">لا توجد وظائف بانتظار المراجعة.</div>`)
-  + `<h2 style="margin-top:22px">الوظائف المنشورة (${a.length})</h2><div class="card tw"><table><tr><th>الوظيفة</th><th>الشركة</th><th>المدينة</th><th></th></tr>${a.map(j => `<tr><td>${esc(j.title)}${j.featured ? ' <span class="chip gold">مميزة</span>' : ''}</td><td>${cname(j.company_id)}</td><td>${esc(j.location || '')}</td><td style="white-space:nowrap"><button class="b g" data-a="feat" data-v="${esc(j.id)}" data-s="${j.featured ? 0 : 1}">${j.featured ? 'إلغاء التمييز' : 'تمييز'}</button> <button class="b g" data-a="job" data-v="${esc(j.id)}" data-s="paused">إيقاف</button></td></tr>`).join('')}</table></div>`;
+  const pj = A.jobs.filter(j => j.status === 'pending'), pc = A.comps.filter(c => c.status === 'pending');
+  return `<h2>وظائف بانتظار المراجعة (${pj.length})</h2><p class="mut">اضغط على الوظيفة لترى كل بياناتها وبيانات من أدخلها ثم قرّر.</p>` + (pj.length ? pj.map(jobCard).join('') : '<div class="card mut">لا توجد وظائف بانتظار المراجعة.</div>')
+    + `<h2 style="margin-top:22px">شركات بانتظار التوثيق (${pc.length})</h2>` + (pc.length ? pc.map(compCard).join('') : '<div class="card mut">لا توجد شركات بانتظار التوثيق.</div>');
+}
+function vJobs() {
+  const t = A.f.jq.trim().toLowerCase(), s = A.f.js;
+  const l = A.jobs.filter(j => (!s || j.status === s) && (!t || (j.title + ' ' + ((C[j.company_id] || {}).name || '')).toLowerCase().includes(t)));
+  return `<h2>كل الوظائف (${A.jobs.length})</h2><div class="row" style="margin-bottom:10px"><input class="s" id="jq" data-a="filter" data-k="jq" placeholder="ابحث بعنوان الوظيفة أو اسم الشركة" value="${esc(A.f.jq)}"><select class="s" data-a="filter" data-k="js"><option value="">كل الحالات</option>${Object.keys(ST).slice(0, 6).map(k => `<option value="${k}" ${s === k ? 'selected' : ''}>${ST[k][0]}</option>`).join('')}</select></div>` + (l.length ? l.slice(0, 150).map(jobCard).join('') : '<div class="card mut">لا توجد نتائج.</div>');
+}
+function compCard(c) {
+  const o = P[c.owner_id], n = A.jobs.filter(j => j.company_id === c.id).length;
+  return `<div class="card click" data-a="compd" data-v="${esc(c.id)}"><div class="row"><div class="sp"><h3>${esc(c.name)}</h3><div class="mut">سجل: ${esc(c.cr_number || '—')} · ${loc(c.location)} · ${n} وظيفة</div><div class="mut">المسؤول: ${esc(o ? (o.full_name || o.email || '—') : '—')} ${o && o.phone ? '· ' + esc(o.phone) : ''}</div></div>${chip(c.status)}</div></div>`;
 }
 function vComps() {
-  const o = { pending: 0, rejected: 1, verified: 2 }, l = [...A.comps].sort((a, b) => o[a.status] - o[b.status]);
-  return `<h2>الشركات والتوثيق</h2><div class="card tw"><table><tr><th>الشركة</th><th>السجل التجاري</th><th>المستند</th><th>الحالة</th><th></th></tr>${l.map(c => `<tr><td><b>${esc(c.name)}</b><div class="mut">${esc(c.location || '')} ${esc(c.phone || '')}</div></td><td>${esc(c.cr_number || '—')}</td><td>${c.cr_doc_path ? `<button class="b g" data-a="crdoc" data-v="${esc(c.id)}">عرض</button>` : '<span class="mut">لا يوجد</span>'}</td><td>${chip(c.status)}</td><td style="white-space:nowrap">${c.status === 'verified' ? `<button class="b g" data-a="comp" data-v="${esc(c.id)}" data-s="pending">إلغاء التوثيق</button>` : `<button class="b ok" data-a="comp" data-v="${esc(c.id)}" data-s="verified">توثيق</button>${c.status === 'pending' ? ` <button class="b r" data-a="comp" data-v="${esc(c.id)}" data-s="rejected">رفض</button>` : ''}`}</td></tr>`).join('')}</table></div>`;
+  const t = A.f.cq.trim().toLowerCase(), o = { pending: 0, rejected: 1, verified: 2 };
+  const l = [...A.comps].sort((a, b) => o[a.status] - o[b.status]).filter(c => !t || (c.name + ' ' + (c.cr_number || '')).toLowerCase().includes(t));
+  return `<h2>الشركات (${A.comps.length})</h2><div class="row" style="margin-bottom:10px"><input class="s" id="cq" data-a="filter" data-k="cq" placeholder="ابحث باسم الشركة أو رقم السجل" value="${esc(A.f.cq)}"></div>` + (l.length ? l.map(compCard).join('') : '<div class="card mut">لا توجد شركات.</div>');
+}
+function vUsers() {
+  const t = A.f.uq.trim().toLowerCase(), r = A.f.ur;
+  const l = A.profiles.filter(p => (!r || (r === 'none' ? !p.role : p.role === r)) && (!t || ((p.full_name || '') + ' ' + (p.email || '') + ' ' + (p.phone || '')).toLowerCase().includes(t)));
+  return `<h2>المستخدمون (${A.profiles.length})</h2><div class="row" style="margin-bottom:10px"><input class="s" id="uq" data-a="filter" data-k="uq" placeholder="ابحث بالاسم أو البريد أو الجوال" value="${esc(A.f.uq)}"><select class="s" data-a="filter" data-k="ur"><option value="">كل الأنواع</option><option value="seeker" ${r === 'seeker' ? 'selected' : ''}>باحثون عن عمل</option><option value="employer" ${r === 'employer' ? 'selected' : ''}>أصحاب عمل</option><option value="admin" ${r === 'admin' ? 'selected' : ''}>إدارة</option><option value="none" ${r === 'none' ? 'selected' : ''}>لم يختاروا</option></select></div>`
+    + (l.length ? l.slice(0, 200).map(p => `<div class="card click" data-a="userd" data-v="${esc(p.id)}"><div class="row"><div class="av">${esc((p.full_name || p.email || '?')[0])}</div><div class="sp"><h3>${esc(p.full_name || '(بدون اسم)')}</h3><div class="mut">${esc(p.email || '—')} ${p.phone ? '· ' + esc(p.phone) : ''}</div></div><span class="chip">${esc(ROLE[p.role] || 'لم يختر')}</span><span class="mut">${ago(p.created_at)}</span></div></div>`).join('') : '<div class="card mut">لا توجد نتائج.</div>');
 }
 function vReps() {
-  return `<h2>البلاغات</h2>` + (A.reports.length ? A.reports.map(r => { const j = JN[r.job_id]; return `<div class="card"><div class="row"><div class="sp"><h3>${esc(j ? j.title : '—')}</h3><div class="mut">${j ? cname(j.company_id) : ''} · السبب: ${esc(r.reason)}</div></div>${r.status === 'open' ? `<button class="b r" data-a="pause" data-v="${esc(r.job_id)}" data-r="${esc(r.id)}">إيقاف الوظيفة</button><button class="b g" data-a="rep" data-v="${esc(r.id)}" data-s="dismissed">تجاهل</button>` : `<span class="chip">${esc(r.status === 'resolved' ? 'تمت المعالجة' : 'تم التجاهل')}</span>`}</div></div>`; }).join('') : `<div class="card mut">لا توجد بلاغات.</div>`);
+  return `<h2>البلاغات (${A.reports.length})</h2>` + (A.reports.length ? A.reports.map(r => { const j = J[r.job_id], rp = P[r.reporter_id]; return `<div class="card"><div class="row"><div class="sp"><h3>${esc(j ? j.title : '—')}</h3><div class="mut">السبب: ${esc(r.reason)}</div><div class="mut">المُبلِّغ: ${esc(rp ? (rp.full_name || rp.email || '—') : '—')} · ${ago(r.created_at)}</div></div>${chip(r.status)}</div><div class="row" style="margin-top:8px">${j ? `<button class="b g sm" data-a="jobd" data-v="${esc(j.id)}">فتح الوظيفة</button>` : ''}${r.status === 'open' ? `${j ? `<button class="b r sm" data-a="pause" data-v="${esc(r.job_id)}" data-r="${esc(r.id)}">إيقاف الوظيفة</button>` : ''}<button class="b g sm" data-a="rep" data-v="${esc(r.id)}" data-s="dismissed">تجاهل</button>` : ''}</div></div>`; }).join('') : '<div class="card mut">لا توجد بلاغات.</div>');
 }
+/* ---------- النوافذ التفصيلية ---------- */
+function openModal(title, body, actions) {
+  $('#modal').innerHTML = `<div class="ov" data-a="closem"><div class="md" role="dialog"><div class="mh"><h3>${title}</h3><button class="x" data-a="closem" aria-label="إغلاق">×</button></div>${body}${actions ? `<div class="bar">${actions}</div>` : ''}</div></div>`;
+}
+const kv = rows => `<div class="card"><div class="kv">${rows.map(([k, v]) => `<span>${k}</span><span>${v === '' || v == null ? '—' : v}</span>`).join('')}</div></div>`;
+function jobModal(id) {
+  const j = J[id]; if (!j) return;
+  const c = C[j.company_id] || {}, o = ownerOf(j), fl = flags(j), apps = A.apps.filter(a => a.job_id === j.id);
+  const oj = A.jobs.filter(x => x.company_id === j.company_id);
+  const body = `<div class="row">${chip(j.status)}${j.featured ? '<span class="chip gold">مميزة</span>' : ''}<span class="mut">أُدخلت ${dt(j.created_at)}</span></div>
+  <h4>التنبيهات التلقائية</h4>${fl.length ? fl.map(x => `<div class="flag">⚠ ${esc(x)}</div>`).join('') : '<div class="flag ok">✓ لا توجد تنبيهات على هذه الوظيفة</div>'}
+  <h4>بيانات الوظيفة</h4>${kv([['العنوان', esc(j.title)], ['التخصص', cat(j.category)], ['المدينة', loc(j.location)], ['نوع الدوام', esc(TYP[j.job_type] || j.job_type)], ['الراتب', esc(salary(j))], ['الخبرة', esc((j.exp_years || 0) + ' سنوات')], ['عمل مؤقت', j.is_gig ? 'نعم' : 'لا'], ['المهارات', esc((j.skills || []).join('، '))], ['النشر', dt(j.published_at)], ['الانتهاء', dt(j.expires_at)], ['المشاهدات', num(j.views)], ['المتقدمون', num(apps.length)]])}
+  <div class="card"><b>الوصف</b><p class="d">${esc(j.description)}</p>${(j.requirements || []).length ? `<b>المتطلبات</b><ul>${j.requirements.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}</div>
+  <h4>الشركة</h4>${kv([['الاسم', esc(c.name)], ['حالة التوثيق', c.status ? chip(c.status) : ''], ['رقم السجل التجاري', esc(c.cr_number)], ['المدينة', loc(c.location)], ['هاتف الشركة', esc(c.phone)], ['نبذة', esc(c.about)], ['عدد وظائفها', num(oj.length) + ` (منشورة ${oj.filter(x => x.status === 'active').length} · مرفوضة ${oj.filter(x => x.status === 'rejected').length})`]])}
+  <div class="row">${c.cr_doc_path ? `<button class="b g sm" data-a="crdoc" data-v="${esc(c.id)}">عرض مستند السجل التجاري</button>` : '<span class="mut">لا يوجد مستند سجل مرفوع</span>'}${c.id ? `<button class="b g sm" data-a="compd" data-v="${esc(c.id)}">فتح الشركة</button>` : ''}</div>
+  <h4>الناشر (من أدخل البيانات)</h4>${o ? `<div class="card"><div class="row"><div class="av">${esc((o.full_name || o.email || '?')[0])}</div><div class="sp"><h3>${esc(o.full_name || '(بدون اسم)')}</h3><div class="mut">${esc(ROLE[o.role] || 'لم يختر')}</div></div></div>
+  ${kv([['الجوال', esc(o.phone)], ['البريد', esc(o.email)], ['المدينة', loc(o.location)], ['انضم', dt(o.created_at)], ['آخر تحديث للملف', dt(o.updated_at)], ['المعرّف', `<small>${esc(o.id)}</small>`]])}<div class="row" style="margin-top:8px">${contact(o.phone, o.email)}</div></div>` : '<div class="card mut">لا توجد بيانات للناشر.</div>'}`;
+  const act = [j.status !== 'active' ? `<button class="b ok" data-a="job" data-v="${esc(j.id)}" data-s="active">نشر</button>` : '', j.status === 'pending' ? `<button class="b r" data-a="job" data-v="${esc(j.id)}" data-s="rejected">رفض</button>` : '', j.status === 'active' ? `<button class="b g" data-a="job" data-v="${esc(j.id)}" data-s="paused">إيقاف</button>` : '', j.status === 'active' ? `<button class="b g" data-a="feat" data-v="${esc(j.id)}" data-s="${j.featured ? 0 : 1}">${j.featured ? 'إلغاء التمييز' : 'تمييز'}</button>` : ''].join('');
+  openModal(esc(j.title), body, act);
+}
+function compModal(id) {
+  const c = C[id]; if (!c) return; const o = P[c.owner_id], js = A.jobs.filter(j => j.company_id === c.id);
+  const body = `<div class="row">${chip(c.status)}<span class="mut">سُجّلت ${dt(c.created_at)}</span></div>
+  ${kv([['الاسم', esc(c.name)], ['رقم السجل التجاري', esc(c.cr_number)], ['المدينة', loc(c.location)], ['هاتف الشركة', esc(c.phone)], ['نبذة', esc(c.about)], ['سبب الرفض', esc(c.reject_reason)], ['التقييم', c.rating_count ? esc((+c.rating_avg).toFixed(1) + ' (' + c.rating_count + ' تقييم)') : 'لا يوجد']])}
+  <div class="row">${c.cr_doc_path ? `<button class="b g sm" data-a="crdoc" data-v="${esc(c.id)}">عرض مستند السجل التجاري</button>` : '<span class="mut">لا يوجد مستند سجل مرفوع</span>'}${c.phone ? contact(c.phone, '') : ''}</div>
+  <h4>المسؤول عن الحساب</h4>${o ? `<div class="card">${kv([['الاسم', esc(o.full_name)], ['الجوال', esc(o.phone)], ['البريد', esc(o.email)], ['انضم', dt(o.created_at)]])}<div class="row" style="margin-top:8px">${contact(o.phone, o.email)}</div></div>` : '<div class="card mut">—</div>'}
+  <h4>وظائف الشركة (${js.length})</h4>${js.length ? js.map(jobCard).join('') : '<div class="card mut">لا توجد وظائف.</div>'}`;
+  const act = [c.status !== 'verified' ? `<button class="b ok" data-a="comp" data-v="${esc(c.id)}" data-s="verified">توثيق</button>` : `<button class="b g" data-a="comp" data-v="${esc(c.id)}" data-s="pending">إلغاء التوثيق</button>`, c.status === 'pending' ? `<button class="b r" data-a="comp" data-v="${esc(c.id)}" data-s="rejected">رفض</button>` : ''].join('');
+  openModal(esc(c.name), body, act);
+}
+function userModal(id) {
+  const p = P[id]; if (!p) return; const c = A.comps.find(x => x.owner_id === p.id), ap = A.apps.filter(a => a.seeker_id === p.id);
+  const body = `<div class="row"><span class="chip">${esc(ROLE[p.role] || 'لم يختر')}</span><span class="mut">انضم ${dt(p.created_at)}</span></div>
+  ${kv([['الاسم', esc(p.full_name)], ['الجوال', esc(p.phone)], ['البريد', esc(p.email)], ['المدينة', loc(p.location)], ['المسمى', esc(p.headline)], ['الخبرة', esc((p.exp_years || 0) + ' سنوات')], ['التعليم', esc(p.education)], ['المهارات', esc((p.skills || []).join('، '))], ['نبذة', esc(p.about)], ['السيرة الذاتية', p.cv_path ? 'مرفوعة' : 'غير مرفوعة'], ['طلبات التقديم', num(ap.length)], ['المعرّف', `<small>${esc(p.id)}</small>`]])}
+  <div class="row">${contact(p.phone, p.email)}</div>
+  ${c ? `<h4>شركته</h4>${compCard(c)}` : ''}`;
+  openModal(esc(p.full_name || p.email || 'مستخدم'), body, '');
+}
+/* ---------- الأحداث ---------- */
+document.addEventListener('input', e => { const t = e.target; if (t.dataset && t.dataset.a === 'filter' && t.tagName === 'INPUT') { A.f[t.dataset.k] = t.value; render(true); } });
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.a === 'filter' && t.tagName === 'SELECT') { A.f[t.dataset.k] = t.value; render(true); } });
+async function refreshAfter(msg) { await load(); A.pend = pendingCount(); const m = $('#modal'); m.innerHTML = ''; render(true); toast(msg); }
 document.addEventListener('click', async e => {
   const t = e.target.closest('[data-a]'); if (!t || A.busy) return;
   const a = t.dataset.a, v = t.dataset.v, s = t.dataset.s;
+  if (a === 'filter') return;
+  if (a === 'closem') { if (e.target === t || t.classList.contains('x')) $('#modal').innerHTML = ''; return; }
   try {
     A.busy = true;
-    if (a === 'nav') { A.view = v; render(); }
+    if (a === 'nav') { $('#modal').innerHTML = ''; A.view = v; render(); window.scrollTo(0, 0); }
     else if (a === 'out') { await sb.auth.signOut(); location.reload(); return; }
-    else if (a === 'refresh') { await load(); render(); toast('تم التحديث'); }
-    else if (a === 'job') { await q(sb.from('jobs').update({ status: s }).eq('id', v)); await load(); render(); toast(s === 'active' ? 'تم النشر وإشعار المناسبين' : 'تم'); }
-    else if (a === 'feat') { await q(sb.from('jobs').update({ featured: s === '1' }).eq('id', v)); await load(); render(); }
-    else if (a === 'comp') { await q(sb.from('companies').update({ status: s, reject_reason: s === 'rejected' ? 'بيانات السجل غير واضحة أو غير مطابقة' : null }).eq('id', v)); await load(); render(); toast('تم'); }
-    else if (a === 'pause') { await q(sb.from('jobs').update({ status: 'paused' }).eq('id', v)); if (t.dataset.r) await q(sb.from('reports').update({ status: 'resolved' }).eq('id', t.dataset.r)); await load(); render(); toast('تم إيقاف الوظيفة'); }
-    else if (a === 'rep') { await q(sb.from('reports').update({ status: s }).eq('id', v)); await load(); render(); }
-    else if (a === 'crdoc') { const c = A.comps.find(x => x.id === v); const { data } = await sb.storage.from('cr-docs').createSignedUrl(c.cr_doc_path, 900); if (data) window.open(data.signedUrl, '_blank'); else toast('تعذّر فتح المستند'); }
+    else if (a === 'refresh') { await load(); render(true); toast('تم التحديث'); }
+    else if (a === 'jobd') jobModal(v);
+    else if (a === 'compd') compModal(v);
+    else if (a === 'userd') userModal(v);
+    else if (a === 'job') { await q(sb.from('jobs').update({ status: s }).eq('id', v)); await refreshAfter(s === 'active' ? 'تم النشر وسيصل الإشعار للمناسبين' : s === 'rejected' ? 'تم الرفض' : 'تم التحديث'); }
+    else if (a === 'feat') { await q(sb.from('jobs').update({ featured: s === '1' }).eq('id', v)); await refreshAfter('تم'); }
+    else if (a === 'comp') { await q(sb.from('companies').update({ status: s, reject_reason: s === 'rejected' ? 'بيانات السجل غير واضحة أو غير مطابقة' : null }).eq('id', v)); await refreshAfter('تم'); }
+    else if (a === 'pause') { await q(sb.from('jobs').update({ status: 'paused' }).eq('id', v)); if (t.dataset.r) await q(sb.from('reports').update({ status: 'resolved' }).eq('id', t.dataset.r)); await refreshAfter('تم إيقاف الوظيفة'); }
+    else if (a === 'rep') { await q(sb.from('reports').update({ status: s }).eq('id', v)); await refreshAfter('تم'); }
+    else if (a === 'crdoc') { const c = C[v]; const { data } = await sb.storage.from('cr-docs').createSignedUrl(c.cr_doc_path, 900); if (data) { if (IS_APP) await plug('Browser').open({ url: data.signedUrl }); else window.open(data.signedUrl, '_blank'); } else toast('تعذّر فتح المستند'); }
   } catch (err) { toast('حدث خطأ: ' + (err.message || err)); }
   finally { A.busy = false; }
 });
@@ -142,7 +273,7 @@ if (IS_APP) {
   App.addListener('appUrlOpen', async e => {
     try { const u = new URL(e.url.replace(SCHEME + '://', 'https://x/')), code = u.searchParams.get('code'); if (code) { await sb.auth.exchangeCodeForSession(code); plug('Browser').close().catch(() => {}); } } catch (err) { toast('تعذّر الدخول: ' + err.message); }
   });
-  App.addListener('backButton', () => App.exitApp());
+  App.addListener('backButton', () => { if ($('#modal').innerHTML) $('#modal').innerHTML = ''; else App.exitApp(); });
 }
 boot();
 </script>
