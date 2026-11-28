@@ -61,7 +61,7 @@ const IS_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && windo
 function plug(n) { const C = window.Capacitor; return (C.Plugins && C.Plugins[n]) || C.registerPlugin(n); }
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const A = { view: 'overview', me: null, jobs: [], comps: [], reports: [], profiles: [], apps: [], busy: false, f: { jq: '', js: '', uq: '', ur: '', cq: '' }, updated: null, pend: -1 };
+const A = { view: 'overview', me: null, jobs: [], comps: [], reports: [], profiles: [], apps: [], busy: false, f: { jq: '', js: '', uq: '', ur: '', cq: '' }, n: { title: '', body: '', aud: 'all', city: '', cat: '', count: null }, bcs: [], bcMissing: false, postJob: '', updated: null, pend: -1 };
 const P = {}, C = {}, J = {};
 const LOC = { sanaa: 'صنعاء', aden: 'عدن', taiz: 'تعز', hodeidah: 'الحديدة', ibb: 'إب', mukalla: 'المكلا', seiyun: 'سيئون', dhamar: 'ذمار', marib: 'مأرب', ataq: 'عتق', ghaydah: 'الغيضة', lahj: 'لحج', abyan: 'أبين', bayda: 'البيضاء', hajjah: 'حجة', saada: 'صعدة', amran: 'عمران', dhale: 'الضالع', socotra: 'سقطرى', remote: 'عن بعد' };
 const CAT = { accounting: 'محاسبة ومالية', admin: 'إدارة وسكرتارية', sales: 'مبيعات وتسويق', hospitality: 'فنادق ومطاعم', engineering: 'هندسة وفنيون', it: 'تقنية معلومات', education: 'تعليم وتدريب', health: 'صحة وتمريض', ngo: 'منظمات وتنمية', transport: 'نقل وتوصيل', support: 'خدمة عملاء', gigs: 'أعمال مؤقتة' };
@@ -94,6 +94,7 @@ async function load() {
     q(sb.from('profiles').select('*').order('created_at', { ascending: false }).limit(3000)),
     q(sb.from('applications').select('id,job_id,seeker_id,status,created_at').order('created_at', { ascending: false }).limit(5000))
   ]);
+  try { A.bcs = await q(sb.from('broadcasts').select('*').order('created_at', { ascending: false }).limit(15)); A.bcMissing = false; } catch (e) { A.bcs = []; A.bcMissing = true; }
   A.jobs = jobs; A.comps = comps; A.reports = reps; A.profiles = profs; A.apps = apps; A.updated = new Date();
   for (const k of [P, C, J]) for (const x in k) delete k[x];
   profs.forEach(x => P[x.id] = x); comps.forEach(x => C[x.id] = x); jobs.forEach(x => J[x.id] = x);
@@ -134,11 +135,11 @@ function renderDenied(email) {
   $('#root').innerHTML = `<div class="center"><img src="../assets/brand/mark-lime.svg" alt=""><h2>لا توجد صلاحية</h2><p class="mut">الحساب ${esc(email || '')} ليس حساب إدارة.</p><button class="b g" id="lo">تسجيل الخروج</button></div>`;
   $('#lo').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 }
-const NAV = [['overview', 'نظرة عامة'], ['review', 'المراجعة'], ['jobs', 'الوظائف'], ['companies', 'الشركات'], ['users', 'المستخدمون'], ['reports', 'البلاغات']];
+const NAV = [['overview', 'نظرة عامة'], ['review', 'المراجعة'], ['jobs', 'الوظائف'], ['companies', 'الشركات'], ['users', 'المستخدمون'], ['reports', 'البلاغات'], ['marketing', 'التسويق']];
 const badgeN = k => k === 'review' ? pendingCount() : k === 'reports' ? A.reports.filter(r => r.status === 'open').length : 0;
 function render(keepScroll) {
   const y = window.scrollY, ae = document.activeElement, aid = ae && ae.id, pos = ae && ae.selectionStart;
-  const f = { overview: vOver, review: vReview, jobs: vJobs, companies: vComps, users: vUsers, reports: vReps }[A.view];
+  const f = { overview: vOver, review: vReview, jobs: vJobs, companies: vComps, users: vUsers, reports: vReps, marketing: vMkt }[A.view];
   $('#root').innerHTML = `<header><img src="../assets/brand/mark-lime.svg" alt=""><div><b>وظيفتي<span class="badge">الإدارة</span></b><small>${esc(A.me.full_name || A.me.email || '')} · آخر تحديث ${A.updated ? A.updated.toLocaleTimeString('ar-YE', { hour: '2-digit', minute: '2-digit' }) : ''}</small></div><span class="sp"></span><button class="b g" data-a="refresh">تحديث</button><button class="b g" data-a="out">خروج</button></header>
   <nav>${NAV.map(([k, n]) => `<button class="${A.view === k ? 'on' : ''}" data-a="nav" data-v="${k}">${n}${badgeN(k) ? `<span class="n">${badgeN(k)}</span>` : ''}</button>`).join('')}</nav><main>${f()}</main>`;
   document.title = (pendingCount() ? `(${pendingCount()}) ` : '') + 'وظيفتي · الإدارة';
@@ -203,6 +204,48 @@ function vUsers() {
 function vReps() {
   return `<h2>البلاغات (${A.reports.length})</h2>` + (A.reports.length ? A.reports.map(r => { const j = J[r.job_id], rp = P[r.reporter_id]; return `<div class="card"><div class="row"><div class="sp"><h3>${esc(j ? j.title : '—')}</h3><div class="mut">السبب: ${esc(r.reason)}</div><div class="mut">المُبلِّغ: ${esc(rp ? (rp.full_name || rp.email || '—') : '—')} · ${ago(r.created_at)}</div></div>${chip(r.status)}</div><div class="row" style="margin-top:8px">${j ? `<button class="b g sm" data-a="jobd" data-v="${esc(j.id)}">فتح الوظيفة</button>` : ''}${r.status === 'open' ? `${j ? `<button class="b r sm" data-a="pause" data-v="${esc(r.job_id)}" data-r="${esc(r.id)}">إيقاف الوظيفة</button>` : ''}<button class="b g sm" data-a="rep" data-v="${esc(r.id)}" data-s="dismissed">تجاهل</button>` : ''}</div></div>`; }).join('') : '<div class="card mut">لا توجد بلاغات.</div>');
 }
+/* ---------- التسويق والإشعارات ---------- */
+const TPL = [
+  ['للباحثين عن عمل', [['أكمل ملفك', 'أكمل ملفك الشخصي في وظيفتي', 'الملف المكتمل يزيد فرصتك في لفت انتباه أصحاب العمل. خذ دقيقتين وأكمله الآن.', 'seekers'], ['سيرتك الذاتية', 'سيرتك الذاتية جاهزة؟', 'أنشئ سيرة ذاتية احترافية من قوالب وظيفتي وقدّم على الوظائف بضغطة واحدة.', 'seekers'], ['فعّل التنبيهات', 'لا تفوّتك أي وظيفة', 'أضف تنبيهاً لتخصصك ومدينتك لنخبرك فور نشر وظيفة مناسبة لك.', 'seekers'], ['وظائف جديدة', 'وظائف جديدة هذا الأسبوع', 'نُشرت وظائف جديدة قد تناسبك. افتح وظيفتي وقدّم قبل انتهاء التقديم.', 'seekers'], ['مساعد سند', 'جرّب مساعد سند', 'اسأل سند عن سيرتك الذاتية وتجهيز مقابلة العمل وصياغة طلبك.', 'seekers']]],
+  ['لأصحاب العمل', [['وظيفتك الأولى', 'انشر وظيفتك الأولى', 'وصّل إعلانك لباحثين مناسبين في مدينتك خلال دقائق.', 'employers'], ['وثّق شركتك', 'وثّق شركتك واكسب ثقة الباحثين', 'ارفع السجل التجاري لشركتك لتحصل على شارة التوثيق ✓ وتظهر وظائفك بثقة أكبر.', 'employers'], ['رد على المتقدمين', 'لديك متقدمون ينتظرون ردك', 'الرد السريع يرفع تقييم شركتك ويجذب أفضل المرشحين. افتح وظيفتي وراجع الطلبات.', 'employers']]],
+  ['عام ومناسبات', [['شارك التطبيق', 'شارك وظيفتي مع من يبحث عن عمل', 'أرسل رابط التطبيق لأصدقائك وأقاربك الباحثين عن عمل، قد تكون سبب وظيفتهم القادمة.', 'all'], ['رأيك يهمنا', 'ساعدنا نتحسّن', 'أخبرنا برأيك في وظيفتي وماذا تتمنى أن نضيف. تقييمك يصنع الفرق.', 'all'], ['تحديث جديد', 'تحديث جديد في وظيفتي', 'حمّل آخر نسخة من التطبيق لتجد تحسينات ومزايا جديدة.', 'all'], ['جمعة مباركة', 'جمعة مباركة', 'وظيفتي يتمنى لك أسبوعاً موفقاً مليئاً بالفرص الطيبة.', 'all'], ['رمضان كريم', 'رمضان كريم', 'كل عام وأنتم بخير. وظيفتي معكم في رمضان، وفرص جديدة تنتظركم.', 'all'], ['عيد مبارك', 'عيدكم مبارك', 'كل عام وأنتم بخير. نتمنى لكم عيداً سعيداً وعاماً مليئاً بالفرص.', 'all']]]
+];
+const POSTS = [
+  ['تعريف بالتطبيق (تيليجرام / فيسبوك)', () => `📢 وظيفتي | منصة وظائف موثّقة في اليمن\n\n✅ وظائف من شركات موثّقة بالسجل التجاري\n✅ سيرة ذاتية احترافية بقوالب جاهزة\n✅ مساعد ذكي يساعدك في طلبك ومقابلتك\n✅ إشعارات فورية بالوظائف المناسبة لك\n\nحمّل التطبيق وقدّم بضغطة 👇\n${CFG.webUrl}`],
+  ['دعوة أصحاب العمل (واتساب)', () => `السلام عليكم ورحمة الله وبركاته\n\nنحن فريق «وظيفتي»، منصة توظيف يمنية تربطكم بباحثين عن عمل مناسبين لشركتكم.\nنشر الوظيفة مجاني في مرحلة الإطلاق، وتحصلون على شارة توثيق بعد رفع السجل التجاري.\n\nيمكنكم التسجيل من هنا:\n${CFG.webUrl}\n\nيسعدنا خدمتكم.`],
+  ['طلب مشاركة من الأصدقاء (واتساب)', () => `هلا، أنا أشتغل مع فريق تطبيق «وظيفتي» لوظائف اليمن.\nلو تعرف أحد يبحث عن عمل أرسل له الرابط، وللشركات اللي تريد توظيف أيضاً:\n${CFG.webUrl}`]
+];
+function jobPostText(j) {
+  const c = C[j.company_id] || {};
+  return `📢 وظيفة شاغرة | ${j.title}\n\n🏢 ${c.name || ''}${c.status === 'verified' ? ' ✓' : ''}\n📍 ${LOC[j.location] || j.location}\n💼 ${TYP[j.job_type] || ''}\n💰 ${salary(j)}${(j.skills || []).length ? '\n✅ المهارات: ' + j.skills.join('، ') : ''}\n\nقدّم الآن عبر تطبيق وظيفتي 👇\n${CFG.webUrl}`;
+}
+const AUD = { all: 'الجميع (باحثون وأصحاب عمل)', seekers: 'الباحثون عن عمل فقط', employers: 'أصحاب العمل فقط' };
+function vMkt() {
+  const n = A.n, act = A.jobs.filter(j => j.status === 'active'), pj = J[A.postJob];
+  return `<h2>إرسال إشعار للمستخدمين</h2>
+  ${A.bcMissing ? '<div class="flag">⚠ ميزة الإشعارات تحتاج تفعيلاً لمرة واحدة في قاعدة البيانات (ملف admin_broadcast.sql). أرسلها لك المساعد في المحادثة.</div>' : ''}
+  <div class="card"><div class="row" style="margin-bottom:8px"><select class="s" data-a="nf" data-k="aud">${Object.entries(AUD).map(([k, v]) => `<option value="${k}" ${n.aud === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+  <select class="s" data-a="nf" data-k="city"><option value="">كل المدن</option>${Object.entries(LOC).map(([k, v]) => `<option value="${k}" ${n.city === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+  <select class="s" data-a="nf" data-k="cat"><option value="">كل التخصصات</option>${Object.entries(CAT).map(([k, v]) => `<option value="${k}" ${n.cat === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+  <input class="s" id="nt" data-a="nf" data-k="title" style="width:100%;margin-bottom:8px" maxlength="120" placeholder="عنوان الإشعار" value="${esc(n.title)}">
+  <textarea class="s" id="nb" data-a="nf" data-k="body" style="width:100%;min-height:90px;margin-bottom:8px" maxlength="500" placeholder="نص الإشعار">${esc(n.body)}</textarea>
+  <div class="row"><span class="mut" id="cnt">${n.count == null ? 'اختر الجمهور لمعرفة عدد المستلمين' : `سيصل إلى <b>${n.count}</b> مستخدم`}</span><span class="sp"></span><button class="b ok" data-a="sendprev">معاينة وإرسال</button></div></div>
+  <h4>قوالب جاهزة (اضغط لتعبئة النموذج ثم عدّل كما تريد)</h4>
+  ${TPL.map(([g, l]) => `<div class="card"><b>${g}</b><div class="row" style="margin-top:8px">${l.map(([nm, t, b, au], i) => `<button class="b g sm" data-a="tpl" data-v="${esc(t)}" data-b="${esc(b)}" data-s="${au}">${esc(nm)}</button>`).join('')}</div></div>`).join('')}
+  <h4>آخر الإشعارات المرسلة</h4>${A.bcs.length ? A.bcs.map(b => `<div class="card"><div class="row"><div class="sp"><b>${esc(b.title)}</b><div class="mut">${esc(b.body)}</div></div><div class="mut" style="text-align:end">${b.recipients} مستلم<br>${ago(b.created_at)}</div></div></div>`).join('') : '<div class="card mut">لم يُرسل أي إشعار بعد.</div>'}
+  <h2 style="margin-top:26px">منشورات جاهزة للنشر (تيليجرام، فيسبوك، واتساب)</h2>
+  <div class="card"><b>منشور من وظيفة منشورة</b><div class="row" style="margin:8px 0"><select class="s" data-a="pickjob" style="flex:1"><option value="">اختر وظيفة منشورة</option>${act.map(j => `<option value="${esc(j.id)}" ${A.postJob === j.id ? 'selected' : ''}>${esc(j.title)} — ${esc((C[j.company_id] || {}).name || '')}</option>`).join('')}</select></div>
+  ${pj ? `<p class="d" id="jp">${esc(jobPostText(pj))}</p><div class="row" style="margin-top:8px"><button class="b sm" data-a="copy" data-t="jp">نسخ النص</button><a class="b" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(jobPostText(pj))}">مشاركة واتساب</a></div>` : '<span class="mut">اختر وظيفة ليظهر النص الجاهز.</span>'}</div>
+  ${POSTS.map(([t, f], i) => `<div class="card"><b>${t}</b><p class="d" id="pp${i}">${esc(f())}</p><div class="row" style="margin-top:8px"><button class="b sm" data-a="copy" data-t="pp${i}">نسخ النص</button><a class="b" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(f())}">مشاركة واتساب</a></div></div>`).join('')}`;
+}
+let cntT = null;
+function recount() {
+  const n = A.n; clearTimeout(cntT);
+  cntT = setTimeout(async () => {
+    try { n.count = await q(sb.rpc('admin_broadcast', { p_title: 'xx', p_body: 'xx', p_audience: n.aud, p_city: n.city || null, p_category: n.cat || null, p_dry: true })); } catch (e) { n.count = null; }
+    const el = $('#cnt'); if (el) el.innerHTML = n.count == null ? 'تعذّر حساب عدد المستلمين (فعّل ميزة الإشعارات)' : `سيصل إلى <b>${n.count}</b> مستخدم`;
+  }, 250);
+}
 /* ---------- النوافذ التفصيلية ---------- */
 function openModal(title, body, actions) {
   $('#modal').innerHTML = `<div class="ov" data-a="closem"><div class="md" role="dialog"><div class="mh"><h3>${title}</h3><button class="x" data-a="closem" aria-label="إغلاق">×</button></div>${body}${actions ? `<div class="bar">${actions}</div>` : ''}</div></div>`;
@@ -242,13 +285,15 @@ function userModal(id) {
   openModal(esc(p.full_name || p.email || 'مستخدم'), body, '');
 }
 /* ---------- الأحداث ---------- */
-document.addEventListener('input', e => { const t = e.target; if (t.dataset && t.dataset.a === 'filter' && t.tagName === 'INPUT') { A.f[t.dataset.k] = t.value; render(true); } });
-document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.a === 'filter' && t.tagName === 'SELECT') { A.f[t.dataset.k] = t.value; render(true); } });
+document.addEventListener('input', e => { { const t = e.target; if (t.dataset && t.dataset.a === 'nf' && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) { A.n[t.dataset.k] = t.value; return; } }
+  const t = e.target; if (t.dataset && t.dataset.a === 'filter' && t.tagName === 'INPUT') { A.f[t.dataset.k] = t.value; render(true); } });
+document.addEventListener('change', e => { { const t = e.target; if (t.dataset && t.dataset.a === 'pickjob') { A.postJob = t.value; render(true); return; } if (t.dataset && t.dataset.a === 'nf' && t.tagName === 'SELECT') { A.n[t.dataset.k] = t.value; A.n.count = null; recount(); return; } }
+  const t = e.target; if (t.dataset && t.dataset.a === 'filter' && t.tagName === 'SELECT') { A.f[t.dataset.k] = t.value; render(true); } });
 async function refreshAfter(msg) { await load(); A.pend = pendingCount(); const m = $('#modal'); m.innerHTML = ''; render(true); toast(msg); }
 document.addEventListener('click', async e => {
   const t = e.target.closest('[data-a]'); if (!t || A.busy) return;
   const a = t.dataset.a, v = t.dataset.v, s = t.dataset.s;
-  if (a === 'filter') return;
+  if (a === 'filter' || a === 'nf' || a === 'pickjob') return;
   if (a === 'closem') { if (e.target === t || t.classList.contains('x')) $('#modal').innerHTML = ''; return; }
   try {
     A.busy = true;
@@ -258,6 +303,14 @@ document.addEventListener('click', async e => {
     else if (a === 'jobd') jobModal(v);
     else if (a === 'compd') compModal(v);
     else if (a === 'userd') userModal(v);
+    else if (a === 'tpl') { A.n.title = v; A.n.body = t.dataset.b; A.n.aud = s; A.n.count = null; render(true); recount(); window.scrollTo({ top: 0, behavior: 'smooth' }); toast('تمت تعبئة القالب، عدّله ثم أرسل'); }
+    else if (a === 'copy') { const el = document.getElementById(t.dataset.t); const txt = el ? el.innerText : ''; try { await navigator.clipboard.writeText(txt); toast('تم النسخ'); } catch (er) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('تم النسخ'); } }
+    else if (a === 'sendprev') {
+      const n = A.n; if (n.title.trim().length < 2 || n.body.trim().length < 2) { toast('اكتب العنوان والنص أولاً'); }
+      else { let c = n.count; try { c = await q(sb.rpc('admin_broadcast', { p_title: 'xx', p_body: 'xx', p_audience: n.aud, p_city: n.city || null, p_category: n.cat || null, p_dry: true })); n.count = c; } catch (er) { toast('فعّل ميزة الإشعارات في قاعدة البيانات أولاً'); c = null; }
+        if (c != null) openModal('تأكيد الإرسال', `<div class="card"><div class="mut">هكذا سيظهر على جوالهم</div><div class="card" style="margin-top:8px;border-color:var(--g)"><b>${esc(n.title)}</b><div>${esc(n.body)}</div></div><div class="kv" style="margin-top:8px"><span>الجمهور</span><span>${esc(AUD[n.aud])}${n.city ? ' · ' + esc(LOC[n.city]) : ''}${n.cat ? ' · ' + esc(CAT[n.cat]) : ''}</span><span>عدد المستلمين</span><span><b>${c}</b></span></div><p class="mut">لا يمكن التراجع بعد الإرسال.</p></div>`, c ? `<button class="b ok" data-a="sendgo">أرسل الآن إلى ${c} مستخدم</button><button class="b g" data-a="closem">إلغاء</button>` : '<span class="mut">لا يوجد مستلمون بهذه الشروط.</span>'); }
+    }
+    else if (a === 'sendgo') { const n = A.n; const c = await q(sb.rpc('admin_broadcast', { p_title: n.title, p_body: n.body, p_audience: n.aud, p_city: n.city || null, p_category: n.cat || null, p_dry: false })); A.n = { title: '', body: '', aud: 'all', city: '', cat: '', count: null }; await refreshAfter(`تم إرسال الإشعار إلى ${c} مستخدم`); }
     else if (a === 'job') { await q(sb.from('jobs').update({ status: s }).eq('id', v)); await refreshAfter(s === 'active' ? 'تم النشر وسيصل الإشعار للمناسبين' : s === 'rejected' ? 'تم الرفض' : 'تم التحديث'); }
     else if (a === 'feat') { await q(sb.from('jobs').update({ featured: s === '1' }).eq('id', v)); await refreshAfter('تم'); }
     else if (a === 'comp') { await q(sb.from('companies').update({ status: s, reject_reason: s === 'rejected' ? 'بيانات السجل غير واضحة أو غير مطابقة' : null }).eq('id', v)); await refreshAfter('تم'); }
